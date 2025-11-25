@@ -1,4 +1,4 @@
-    <!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="sv">
 <head>
     <meta charset="UTF-8">
@@ -12,6 +12,7 @@
             --accent: #ffffff; 
             --danger: #ff4444;
             --success: #00C851;
+            --edit: #33b5e5;
         }
 
         body {
@@ -109,18 +110,31 @@
             font-size: 1.1em;
             flex: 1;
             margin-right: 10px;
+            white-space: pre-wrap; /* Bevarar radbrytningar */
         }
 
-        .delete-btn {
+        /* --- Nya stilar för knapp-gruppen i hörnet --- */
+        .card-controls-top {
+            display: flex;
+            gap: 5px;
+        }
+
+        .icon-btn {
             background: none;
             border: none;
-            color: #555;
             cursor: pointer;
-            font-size: 1.5em;
-            line-height: 0.5;
-            padding: 0;
+            font-size: 1.2em;
+            padding: 2px 5px;
+            transition: color 0.2s;
+            line-height: 1;
         }
+
+        .delete-btn { color: #555; }
         .delete-btn:hover { color: var(--danger); }
+
+        .edit-btn { color: #555; font-size: 1.1em;}
+        .edit-btn:hover { color: var(--edit); }
+        /* --------------------------------------------- */
 
         .card-actions {
             display: flex;
@@ -159,10 +173,7 @@
         .vote-btn:hover:not(:disabled) { background-color: rgba(255, 255, 255, 0.1); color: white; }
         .vote-btn:disabled { opacity: 0.2; cursor: default; }
 
-        /* Stil när man röstar upp */
         .vote-up:hover:not(:disabled) { color: var(--success); }
-        
-        /* Stil när man röstar ner (ångrar) */
         .vote-down:hover:not(:disabled) { color: var(--danger); }
 
         .vote-count {
@@ -243,29 +254,26 @@
         // KONFIGURATION - Klistra in dina uppgifter här nedanför!
         // --------------------------------------------------------------
         const firebaseConfig = {
-          apiKey: "AIzaSyCHrUufAISfVGwGICTDcVaWGt0vzLVRFpk",
-          authDomain: "team-kanban.firebaseapp.com",
-          databaseURL: "https://team-kanban-default-rtdb.europe-west1.firebasedatabase.app",
-          projectId: "team-kanban",
-          storageBucket: "team-kanban.firebasestorage.app",
-          messagingSenderId: "457664936790",
-          appId: "1:457664936790:web:a77f6fe962b365fb1034f7"
+            apiKey: "PASTA_IN_DIN_CONFIG_HÄR",
+            authDomain: "PASTA_IN_DIN_CONFIG_HÄR",
+            databaseURL: "PASTA_IN_DIN_CONFIG_HÄR",
+            projectId: "PASTA_IN_DIN_CONFIG_HÄR",
+            storageBucket: "PASTA_IN_DIN_CONFIG_HÄR",
+            messagingSenderId: "PASTA_IN_DIN_CONFIG_HÄR",
+            appId: "PASTA_IN_DIN_CONFIG_HÄR"
         };
         // --------------------------------------------------------------
 
         const app = initializeApp(firebaseConfig);
         const db = getDatabase(app);
         
-        // --- Lokal State ---
         let cards = [];
         const MAX_VOTES = 5;
         
-        // Användarfärg
         const userColor = localStorage.getItem('userColor') || '#' + Math.floor(Math.random()*16777215).toString(16);
         localStorage.setItem('userColor', userColor);
         document.getElementById('my-color-box').style.backgroundColor = userColor;
 
-        // Röster - Sparar en lista med IDn på kort jag röstat på i localStorage
         let myVotedCards = JSON.parse(localStorage.getItem('myVotedCards')) || [];
         
         function updateVotesDisplay() {
@@ -273,17 +281,13 @@
             document.getElementById('votes-left').innerText = votesLeft;
         }
 
-        // --- Firebase Lyssna ---
         const cardsRef = ref(db, 'kanban/cards');
         
         onValue(cardsRef, (snapshot) => {
             document.getElementById('status').innerText = "🟢 Live";
             const data = snapshot.val();
             cards = data ? data : [];
-            
-            // SORTERING: Sortera korten baserat på röster (Högst först)
             cards.sort((a, b) => b.votes - a.votes);
-            
             renderBoard();
         });
 
@@ -292,8 +296,7 @@
             set(cardsRef, cards).catch(e => alert("Kunde inte spara: " + e.message));
         }
 
-        // --- Funktioner ---
-
+        // --- SKAPA ---
         window.createCard = function() {
             const input = document.getElementById('new-card-text');
             const text = input.value.trim();
@@ -317,29 +320,41 @@
             if (event.key === "Enter") window.createCard();
         });
 
-        // TA BORT KORT
+        // --- REDIGERA TEXT (NY FUNKTION) ---
+        window.editCard = function(id) {
+            const card = cards.find(c => c.id === id);
+            if (!card) return;
+
+            // Använder prompt för att vara säker vid realtidsuppdateringar
+            const newText = prompt("Redigera texten:", card.text);
+            
+            // Om man trycker Cancel är newText null. Vi kollar också att det inte är tomt.
+            if (newText !== null && newText.trim() !== "") {
+                card.text = newText.trim();
+                saveToFirebase();
+            }
+        };
+
+        // --- TA BORT ---
         window.deleteCard = function(id) {
             if(confirm("Vill du ta bort denna lapp?")) {
                 cards = cards.filter(c => c.id !== id);
-                
-                // Rensa om jag hade röstat på det borttagna kortet
                 if(myVotedCards.includes(id)) {
                     myVotedCards = myVotedCards.filter(vId => vId !== id);
                     localStorage.setItem('myVotedCards', JSON.stringify(myVotedCards));
                     updateVotesDisplay();
                 }
-
                 saveToFirebase();
             }
         };
 
-        // LÄGG TILL RÖST (THUMBS UP)
+        // --- RÖSTNING ---
         window.addVote = function(id) {
             if (myVotedCards.length >= MAX_VOTES) {
                 alert("Du har slut på röster!");
                 return;
             }
-            if (myVotedCards.includes(id)) return; // Har redan röstat
+            if (myVotedCards.includes(id)) return;
 
             const cardIndex = cards.findIndex(c => c.id === id);
             if (cardIndex !== -1) {
@@ -350,22 +365,19 @@
             }
         };
 
-        // TA BORT RÖST (THUMBS DOWN)
         window.removeVote = function(id) {
-            if (!myVotedCards.includes(id)) return; // Har inte röstat
+            if (!myVotedCards.includes(id)) return;
 
             const cardIndex = cards.findIndex(c => c.id === id);
             if (cardIndex !== -1) {
-                // Skydd så att vi inte får minusröster om något blir fel
                 if (cards[cardIndex].votes > 0) cards[cardIndex].votes--;
-                
                 myVotedCards = myVotedCards.filter(vId => vId !== id);
                 localStorage.setItem('myVotedCards', JSON.stringify(myVotedCards));
                 saveToFirebase();
             }
         };
 
-        // DRAG AND DROP
+        // --- DRAG AND DROP ---
         window.allowDrop = (ev) => { ev.preventDefault(); ev.currentTarget.classList.add('drag-over'); }
         window.leaveDrop = (ev) => { ev.currentTarget.classList.remove('drag-over'); }
         window.drag = (ev) => { ev.dataTransfer.setData("text/plain", ev.target.id); }
@@ -405,17 +417,16 @@
                 
                 cardEl.addEventListener('dragstart', window.drag);
 
-                // --- LOGIK FÖR KNAPPARNA ---
-                // Upp-knapp: Aktiv om jag inte röstat OCH har röster kvar
                 const upDisabled = isVotedByMe || votesLeft <= 0;
-                
-                // Ner-knapp: Aktiv endast om jag HAR röstat
                 const downDisabled = !isVotedByMe;
 
                 cardEl.innerHTML = `
                     <div class="card-header">
                         <div class="card-text">${card.text}</div>
-                        <button class="delete-btn" onclick="deleteCard(${card.id})" title="Ta bort">–</button>
+                        <div class="card-controls-top">
+                            <button class="icon-btn edit-btn" onclick="editCard(${card.id})" title="Redigera text">✎</button>
+                            <button class="icon-btn delete-btn" onclick="deleteCard(${card.id})" title="Ta bort">–</button>
+                        </div>
                     </div>
                     <div class="card-actions">
                         <div style="font-size:0.8em">ID: #${card.id.toString().slice(-4)}</div>
@@ -431,7 +442,6 @@
                 document.getElementById(card.column).appendChild(cardEl);
             });
 
-            // Koppla drop-events
             document.querySelectorAll('.task-list').forEach(list => {
                 list.ondrop = window.drop;
                 list.ondragover = window.allowDrop;
