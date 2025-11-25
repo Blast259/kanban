@@ -2,7 +2,7 @@
 <html lang="sv">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Lean Coffee | Agile Board</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
     
@@ -22,7 +22,7 @@
             --shadow-sm: 0 1px 2px 0 rgb(0 0 0 / 0.05);
         }
 
-        * { box-sizing: border-box; }
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
 
         body {
             background-color: var(--bg-body);
@@ -39,225 +39,207 @@
         header {
             background-color: var(--bg-surface);
             border-bottom: 1px solid var(--border);
-            padding: 0.8rem 2rem;
+            padding: 0.8rem 1.5rem;
             display: grid;
-            grid-template-columns: 1fr auto 1fr; /* Vänster - Mitten (Timer) - Höger */
+            grid-template-columns: 1fr auto 1fr;
             align-items: center;
-            gap: 20px;
+            gap: 10px;
             box-shadow: var(--shadow-sm);
             z-index: 10;
         }
 
-        .brand { display: flex; align-items: center; gap: 12px; }
-        .brand h1 { font-size: 1.25rem; font-weight: 700; margin: 0; letter-spacing: -0.025em; }
-        .brand-badge { background-color: var(--primary); color: #0f172a; font-size: 0.75rem; font-weight: 700; padding: 2px 8px; border-radius: 4px; }
-
+        .brand { display: flex; align-items: center; gap: 8px; }
+        .brand h1 { font-size: 1.1rem; font-weight: 700; margin: 0; letter-spacing: -0.025em; white-space: nowrap; }
+        
         /* Timer Styles */
         .timer-section {
             display: flex;
             align-items: center;
             background: rgba(0,0,0,0.2);
-            padding: 5px 15px;
+            padding: 4px 10px;
             border-radius: 8px;
             border: 1px solid var(--border);
-            gap: 15px;
+            gap: 10px;
         }
 
         .timer-display {
             font-family: 'JetBrains Mono', monospace;
-            font-size: 1.8rem;
+            font-size: 1.4rem;
             font-weight: 700;
             color: var(--text-primary);
-            min-width: 100px;
+            min-width: 60px;
             text-align: center;
-            letter-spacing: -1px;
         }
 
-        .timer-display.finished {
-            color: var(--danger);
-            animation: pulse 1s infinite;
-        }
+        .timer-display.finished { color: var(--danger); animation: pulse 1s infinite; }
+        @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
 
-        @keyframes pulse {
-            0% { opacity: 1; }
-            50% { opacity: 0.5; }
-            100% { opacity: 1; }
-        }
-
-        .timer-controls {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-        }
-
+        .timer-controls { display: flex; align-items: center; gap: 5px; }
         .timer-input {
-            background: var(--bg-body);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            padding: 5px;
-            border-radius: 4px;
-            width: 50px;
-            text-align: center;
-            font-family: inherit;
+            background: var(--bg-body); border: 1px solid var(--border);
+            color: var(--text-primary); padding: 5px; border-radius: 4px;
+            width: 40px; text-align: center; font-family: inherit;
         }
 
         .btn-small {
-            background: var(--bg-card);
-            border: 1px solid var(--border);
-            color: var(--text-primary);
-            cursor: pointer;
-            padding: 5px 10px;
-            border-radius: 4px;
-            font-size: 0.85rem;
-            transition: all 0.2s;
+            background: var(--bg-card); border: 1px solid var(--border);
+            color: var(--text-primary); cursor: pointer; padding: 5px 8px;
+            border-radius: 4px; font-size: 0.8rem;
         }
-        .btn-small:hover { background: var(--border); }
         .btn-primary { background: var(--primary); color: #0f172a; border: none; font-weight: 600; }
-        .btn-primary:hover { background: var(--primary-hover); }
 
-        .user-panel {
-            display: flex;
-            justify-content: flex-end;
-            align-items: center;
-            gap: 1.5rem;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-        }
-
+        .user-panel { display: flex; justify-content: flex-end; align-items: center; gap: 0.8rem; font-size: 0.8rem; }
         .stat-pill {
-            background: rgba(255,255,255,0.05);
-            padding: 6px 12px;
-            border-radius: 20px;
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            border: 1px solid rgba(255,255,255,0.1);
+            background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 20px;
+            display: flex; align-items: center; gap: 6px; border: 1px solid rgba(255,255,255,0.1);
         }
 
-        /* --- Rest of UI --- */
+        /* --- Controls --- */
         .controls-area {
-            padding: 1.5rem 2rem 0.5rem 2rem;
-            display: flex;
-            justify-content: center;
-            width: 100%;
-            max-width: 800px;
-            margin: 0 auto;
+            padding: 1rem; display: flex; justify-content: center;
+            width: 100%; max-width: 800px; margin: 0 auto;
         }
 
         .input-group {
-            display: flex;
-            width: 100%;
-            background: var(--bg-surface);
-            padding: 6px;
-            border-radius: 12px;
-            border: 1px solid var(--border);
-            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+            display: flex; width: 100%; background: var(--bg-surface);
+            padding: 4px; border-radius: 12px; border: 1px solid var(--border);
         }
-        
-        .input-group:focus-within { border-color: var(--primary); }
 
         #new-card-text {
-            flex: 1; background: transparent; border: none; padding: 10px 16px;
+            flex: 1; background: transparent; border: none; padding: 12px;
             color: var(--text-primary); font-size: 1rem; outline: none;
         }
 
         #add-btn {
             background-color: var(--primary); color: #0f172a; border: none;
-            border-radius: 8px; padding: 0 24px; font-weight: 600; cursor: pointer;
-            font-size: 1.2rem; display: flex; align-items: center; justify-content: center;
+            border-radius: 8px; width: 50px; font-weight: 600; cursor: pointer;
+            font-size: 1.5rem; display: flex; align-items: center; justify-content: center;
         }
-        #add-btn:hover { background-color: var(--primary-hover); }
 
+        /* --- Board Layout (Mobilanpassad) --- */
         .board {
-            flex: 1; display: flex; gap: 1.5rem; padding: 1.5rem 2rem;
-            overflow-x: auto; align-items: flex-start;
+            flex: 1; display: flex; gap: 1rem; padding: 1rem;
+            overflow-x: auto; /* Tillåt scroll i sidled */
+            overflow-y: hidden;
+            scroll-snap-type: x mandatory; /* Snappa till kolumner */
+            align-items: flex-start;
         }
 
         .column {
-            background-color: var(--bg-surface); border-radius: 12px; flex: 1;
-            min-width: 320px; max-width: 400px; display: flex; flex-direction: column;
-            border: 1px solid var(--border); height: 100%; max-height: calc(100vh - 180px);
+            background-color: var(--bg-surface); border-radius: 12px;
+            flex: 0 0 85vw; /* Ta upp 85% av skärmbredden på mobil */
+            min-width: 300px; max-width: 400px;
+            display: flex; flex-direction: column;
+            border: 1px solid var(--border);
+            height: 100%; max-height: 100%;
+            scroll-snap-align: center; /* Centrera vid scroll */
         }
 
         .column-header {
-            padding: 1rem 1.25rem; border-bottom: 1px solid var(--border);
+            padding: 0.8rem 1rem; border-bottom: 1px solid var(--border);
             display: flex; justify-content: space-between; align-items: center;
+            background: rgba(0,0,0,0.1);
         }
 
-        .column-header h2 { margin: 0; font-size: 0.95rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); }
+        .column-header h2 { margin: 0; font-size: 1rem; font-weight: 600; text-transform: uppercase; color: var(--text-secondary); }
 
         .task-list {
-            flex: 1; padding: 1rem; overflow-y: auto; display: flex; flex-direction: column; gap: 12px;
+            flex: 1; padding: 0.8rem; overflow-y: auto;
+            display: flex; flex-direction: column; gap: 10px;
         }
-        .task-list::-webkit-scrollbar { width: 6px; }
-        .task-list::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
-        .task-list.drag-over { background-color: rgba(56, 189, 248, 0.05); border: 2px dashed var(--primary); }
 
+        /* --- Card Styles --- */
         .card {
-            background-color: var(--bg-card); border-radius: 8px; padding: 1rem;
-            cursor: grab; border: 1px solid transparent; border-left: 4px solid transparent;
-            transition: transform 0.2s; position: relative;
+            background-color: var(--bg-card); border-radius: 8px; padding: 0.8rem;
+            border-left: 4px solid transparent; position: relative;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
         }
-        .card:hover { transform: translateY(-2px); border-color: rgba(255,255,255,0.05); }
-        .card:active { cursor: grabbing; }
 
-        .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 12px; }
-        .card-text { color: var(--text-primary); font-size: 0.95rem; line-height: 1.5; word-wrap: break-word; white-space: pre-wrap; flex: 1; }
+        .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; margin-bottom: 8px; }
+        .card-text { color: var(--text-primary); font-size: 0.95rem; line-height: 1.4; word-wrap: break-word; white-space: pre-wrap; flex: 1; }
         
-        .card-actions-top { display: flex; gap: 4px; opacity: 0.6; transition: opacity 0.2s; }
-        .card:hover .card-actions-top { opacity: 1; }
+        .card-actions-top { display: flex; gap: 8px; } /* Alltid synliga på mobil */
 
-        .icon-btn { background: transparent; border: none; color: var(--text-muted); cursor: pointer; padding: 4px; border-radius: 4px; display: flex; align-items: center; justify-content: center; transition: all 0.2s; }
-        .icon-btn:hover { background-color: rgba(255,255,255,0.1); color: var(--text-primary); }
-        .delete-btn:hover { color: var(--danger); background-color: rgba(248, 113, 113, 0.1); }
+        .icon-btn {
+            background: rgba(255,255,255,0.05); border: none; color: var(--text-muted);
+            cursor: pointer; padding: 6px; border-radius: 4px; display: flex;
+            align-items: center; justify-content: center;
+        }
+        .delete-btn { color: var(--danger); }
+
+        /* Move Buttons (Mobil) */
+        .move-controls {
+            display: flex; justify-content: space-between; margin-top: 10px; 
+            border-top: 1px solid rgba(255,255,255,0.05); padding-top: 5px;
+        }
+        
+        .move-btn {
+            background: none; border: 1px solid var(--border); color: var(--primary);
+            border-radius: 4px; cursor: pointer; padding: 4px 10px; font-size: 0.9rem;
+        }
+        .move-btn:disabled { opacity: 0; pointer-events: none; } /* Dölj om man inte kan flytta */
 
         .card-bottom {
             display: flex; justify-content: space-between; align-items: center;
-            border-top: 1px solid rgba(255,255,255,0.05); padding-top: 10px; margin-top: 5px;
+            margin-top: 10px; padding-top: 5px; border-top: 1px solid rgba(255,255,255,0.05);
         }
-        .card-meta { font-size: 0.75rem; color: var(--text-muted); font-family: monospace; }
+        .card-meta { font-size: 0.7rem; color: var(--text-muted); }
 
         .vote-pill {
-            display: flex; align-items: center; background-color: rgba(0,0,0,0.2);
-            border-radius: 20px; padding: 2px; border: 1px solid rgba(255,255,255,0.05);
+            display: flex; align-items: center; background-color: rgba(0,0,0,0.3);
+            border-radius: 20px; padding: 2px;
         }
         .vote-btn {
-            background: none; border: none; width: 28px; height: 28px; border-radius: 50%;
-            cursor: pointer; display: flex; align-items: center; justify-content: center;
-            color: var(--text-secondary); font-size: 0.9rem;
+            background: none; border: none; width: 32px; height: 32px; /* Större touch target */
+            border-radius: 50%; cursor: pointer; display: flex; align-items: center;
+            justify-content: center; color: var(--text-secondary); font-size: 1rem;
         }
-        .vote-btn:hover:not(:disabled) { background-color: rgba(255,255,255,0.1); color: var(--text-primary); }
-        .vote-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-        .vote-up:hover:not(:disabled) { color: var(--success); }
-        .vote-down:hover:not(:disabled) { color: var(--danger); }
+        .vote-btn:active { background-color: rgba(255,255,255,0.1); }
+        .vote-up { color: var(--success); opacity: 0.7; }
+        .vote-up:not(:disabled) { opacity: 1; }
 
-        .vote-count { padding: 0 8px; font-weight: 600; color: var(--text-primary); font-size: 0.9rem; min-width: 24px; text-align: center; }
-        .my-vote-badge { font-size: 0.7rem; color: var(--success); background: rgba(74, 222, 128, 0.1); padding: 1px 6px; border-radius: 4px; margin-left: 6px; }
+        #status { position: fixed; bottom: 5px; right: 10px; font-size: 0.7rem; color: var(--text-muted); background: rgba(0,0,0,0.8); padding: 2px 6px; border-radius: 4px; pointer-events: none;}
 
-        #status { position: absolute; bottom: 10px; right: 20px; font-size: 0.75rem; color: var(--text-muted); }
+        /* --- RESPONSIVE MEDIA QUERIES --- */
+        @media (max-width: 768px) {
+            header {
+                grid-template-columns: 1fr;
+                grid-template-rows: auto auto auto;
+                gap: 8px;
+                padding: 10px;
+                text-align: center;
+            }
+            .brand { justify-content: center; }
+            .timer-section { justify-content: center; width: 100%; }
+            .user-panel { justify-content: center; width: 100%; }
+            
+            .board {
+                scroll-padding: 0 5vw; /* Centrera korten lite snyggare */
+            }
+        }
     </style>
 </head>
 <body>
 
     <header>
         <div class="brand">
-            <div style="font-size: 1.5rem;">☕</div>
-            <div><h1>LEAN COFFEE</h1></div>
+            <div style="font-size: 1.2rem;">☕</div>
+            <h1>LEAN COFFEE</h1>
         </div>
         
         <div class="timer-section">
             <div id="timer-display" class="timer-display">00:00</div>
             <div class="timer-controls">
-                <input type="number" id="timer-input" class="timer-input" value="5" min="1" max="60" title="Minuter">
+                <input type="number" id="timer-input" class="timer-input" value="5" min="1" max="60">
                 <button class="btn-small btn-primary" onclick="startTimer()">Start</button>
-                <button class="btn-small" onclick="stopTimer()">Stopp</button>
+                <button class="btn-small" onclick="stopTimer()">Stop</button>
             </div>
         </div>
 
         <div class="user-panel">
             <div class="stat-pill">
-                <span style="color:var(--text-muted)">Din färg:</span>
-                <span id="my-color-box" style="display:block; width:12px; height:12px; border-radius:50%; box-shadow: 0 0 5px rgba(255,255,255,0.2);"></span> 
+                <span style="color:var(--text-muted)">Du:</span>
+                <span id="my-color-box" style="display:block; width:12px; height:12px; border-radius:50%;"></span> 
             </div>
             <div class="stat-pill">
                 <span style="color:var(--text-muted)">Röster:</span>
@@ -268,21 +250,21 @@
 
     <div class="controls-area">
         <div class="input-group">
-            <input type="text" id="new-card-text" placeholder="Vad vill du diskutera? Skriv här...">
-            <button id="add-btn" title="Lägg till">+</button>
+            <input type="text" id="new-card-text" placeholder="Ny aktivitet...">
+            <button id="add-btn">+</button>
         </div>
     </div>
 
     <div class="board">
-        <div class="column">
+        <div class="column" id="col-proposal">
             <div class="column-header"><h2>Förslag</h2><span>💡</span></div>
             <div class="task-list" id="proposal"></div>
         </div>
-        <div class="column">
+        <div class="column" id="col-discuss">
             <div class="column-header"><h2>Diskutera</h2><span>🗣️</span></div>
             <div class="task-list" id="discuss"></div>
         </div>
-        <div class="column">
+        <div class="column" id="col-done">
             <div class="column-header"><h2>Klart</h2><span>✅</span></div>
             <div class="task-list" id="done"></div>
         </div>
@@ -295,7 +277,7 @@
         import { getDatabase, ref, set, onValue } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
 
         // --------------------------------------------------------------
-        // KONFIGURATION - Klistra in dina uppgifter här nedanför!
+        // KONFIGURATION
         // --------------------------------------------------------------
         const firebaseConfig = {
 		  apiKey: "AIzaSyCHrUufAISfVGwGICTDcVaWGt0vzLVRFpk",
@@ -314,100 +296,60 @@
         
         let cards = [];
         const MAX_VOTES = 5;
+        const COLUMNS = ['proposal', 'discuss', 'done']; // Ordning på kolumner
+        
         const userColor = localStorage.getItem('userColor') || '#' + Math.floor(Math.random()*16777215).toString(16);
         localStorage.setItem('userColor', userColor);
         document.getElementById('my-color-box').style.backgroundColor = userColor;
         let myVotedCards = JSON.parse(localStorage.getItem('myVotedCards')) || [];
 
-        // --- TIMER LOGIK (NYTT) ---
+        // --- TIMER ---
         let timerInterval = null;
         let timerTarget = 0;
-        
-        // Enkelt "bip" ljud (Base64)
-        const beepSound = new Audio("data:audio/wav;base64,UklGRl9vT19XQVZFZm10IBAAAAABAAEAQB8AAEAfAAABAAgAZGF0YU"); // Kort dummy, egentligen behöver vi en riktig wav string, men vi kör visuell feedback främst.
-
         const timerRef = ref(db, 'kanban/timer');
 
-        // Lyssna på timer från Firebase
         onValue(timerRef, (snapshot) => {
             const data = snapshot.val();
-            const display = document.getElementById('timer-display');
-            
             if (data && data.targetTime) {
                 timerTarget = data.targetTime;
-                
-                // Om vi redan har en interval igång, låt den vara, annars starta
-                if (!timerInterval) {
-                    timerInterval = setInterval(updateTimerUI, 1000);
-                }
-                updateTimerUI(); // Uppdatera direkt
+                if (!timerInterval) timerInterval = setInterval(updateTimerUI, 1000);
+                updateTimerUI();
             } else {
-                // Ingen timer körs
                 stopLocalTimer();
-                display.innerText = "00:00";
-                display.classList.remove('finished');
+                document.getElementById('timer-display').innerText = "00:00";
+                document.getElementById('timer-display').classList.remove('finished');
             }
         });
 
         window.startTimer = function() {
-            const minutes = parseInt(document.getElementById('timer-input').value);
-            if (!minutes || minutes <= 0) return;
-            
-            const targetTime = Date.now() + (minutes * 60 * 1000);
+            const val = document.getElementById('timer-input').value;
+            if (!val) return;
+            const targetTime = Date.now() + (parseInt(val) * 60 * 1000);
             set(timerRef, { targetTime: targetTime });
         };
-
-        window.stopTimer = function() {
-            set(timerRef, null); // Ta bort timern i databasen
-        };
-
-        function stopLocalTimer() {
-            if (timerInterval) {
-                clearInterval(timerInterval);
-                timerInterval = null;
-            }
-        }
-
+        window.stopTimer = function() { set(timerRef, null); };
+        function stopLocalTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
         function updateTimerUI() {
-            const now = Date.now();
-            const diff = timerTarget - now;
+            const diff = timerTarget - Date.now();
             const display = document.getElementById('timer-display');
-
             if (diff <= 0) {
-                display.innerText = "00:00";
-                display.classList.add('finished');
-                // Vi stoppar inte intervallet här, så den fortsätter pulsera tills någon trycker stop
-                return;
+                display.innerText = "00:00"; display.classList.add('finished'); return;
             }
-
             display.classList.remove('finished');
-            
-            const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-            const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-
-            display.innerText = 
-                (minutes < 10 ? "0" + minutes : minutes) + ":" + 
-                (seconds < 10 ? "0" + seconds : seconds);
+            const m = Math.floor((diff % 3600000) / 60000);
+            const s = Math.floor((diff % 60000) / 1000);
+            display.innerText = (m<10?"0"+m:m) + ":" + (s<10?"0"+s:s);
         }
-        // --------------------------
 
-        // --- KORT LOGIK ---
+        // --- CARDS ---
         const cardsRef = ref(db, 'kanban/cards');
-        
-        onValue(cardsRef, (snapshot) => {
-            document.getElementById('status').innerText = "🟢 Connected";
-            document.getElementById('status').style.color = "var(--success)";
-            const data = snapshot.val();
-            cards = data ? data : [];
+        onValue(cardsRef, (s) => {
+            const d = s.val(); cards = d ? d : [];
             cards.sort((a, b) => b.votes - a.votes);
             renderBoard();
         });
 
-        function saveToFirebase() {
-            document.getElementById('status').innerText = "🟡 Syncing...";
-            document.getElementById('status').style.color = "var(--primary)";
-            set(cardsRef, cards).catch(e => alert("Error: " + e.message));
-        }
+        function save() { set(cardsRef, cards); }
 
         window.createCard = function() {
             const input = document.getElementById('new-card-text');
@@ -415,105 +357,107 @@
             if (!text) return;
             cards.push({ id: Date.now(), text: text, column: 'proposal', color: userColor, votes: 0 });
             input.value = '';
-            saveToFirebase();
+            save();
         }
-        document.getElementById('add-btn').addEventListener('click', window.createCard);
-        document.getElementById('new-card-text').addEventListener("keypress", (e) => { if(e.key==="Enter") window.createCard(); });
+        document.getElementById('add-btn').onclick = window.createCard;
 
         window.editCard = function(id) {
-            const card = cards.find(c => c.id === id);
-            if (!card) return;
-            const newText = prompt("Redigera text:", card.text);
-            if (newText && newText.trim()) { card.text = newText.trim(); saveToFirebase(); }
-        };
+            const c = cards.find(x => x.id === id);
+            const txt = prompt("Ändra text:", c.text);
+            if (txt && txt.trim()) { c.text = txt.trim(); save(); }
+        }
 
         window.deleteCard = function(id) {
-            if(confirm("Ta bort lapp?")) {
-                cards = cards.filter(c => c.id !== id);
-                if(myVotedCards.includes(id)) {
-                    myVotedCards = myVotedCards.filter(vId => vId !== id);
-                    localStorage.setItem('myVotedCards', JSON.stringify(myVotedCards));
-                    updateVotesDisplay();
+            if(confirm("Ta bort?")) {
+                cards = cards.filter(x => x.id !== id);
+                // Rensa röster
+                while(myVotedCards.includes(id)) {
+                    myVotedCards.splice(myVotedCards.indexOf(id), 1);
                 }
-                saveToFirebase();
-            }
-        };
-
-        window.addVote = function(id) {
-            if (myVotedCards.length >= MAX_VOTES) { alert("Slut på röster!"); return; }
-            const card = cards.find(c => c.id === id);
-            if (card) {
-                card.votes++;
-                myVotedCards.push(id);
                 localStorage.setItem('myVotedCards', JSON.stringify(myVotedCards));
-                saveToFirebase();
-            }
-        };
-
-        window.removeVote = function(id) {
-            if (!myVotedCards.includes(id)) return;
-            const card = cards.find(c => c.id === id);
-            if (card) {
-                if (card.votes > 0) card.votes--;
-                myVotedCards.splice(myVotedCards.indexOf(id), 1);
-                localStorage.setItem('myVotedCards', JSON.stringify(myVotedCards));
-                saveToFirebase();
-            }
-        };
-
-        function updateVotesDisplay() {
-            document.getElementById('votes-left').innerText = MAX_VOTES - myVotedCards.length;
-        }
-
-        // Drag & Drop
-        window.allowDrop = (ev) => { ev.preventDefault(); ev.currentTarget.classList.add('drag-over'); }
-        window.leaveDrop = (ev) => { ev.currentTarget.classList.remove('drag-over'); }
-        window.drag = (ev) => { ev.dataTransfer.setData("text/plain", ev.target.id); }
-        window.drop = function(ev) {
-            ev.preventDefault();
-            ev.currentTarget.classList.remove('drag-over');
-            const cardId = parseInt(ev.dataTransfer.getData("text/plain"));
-            const cardIndex = cards.findIndex(c => c.id === cardId);
-            if (cardIndex !== -1 && cards[cardIndex].column !== ev.currentTarget.id) {
-                cards[cardIndex].column = ev.currentTarget.id;
-                saveToFirebase();
+                save();
             }
         }
 
-        function renderBoard() {
-            updateVotesDisplay();
-            ['proposal', 'discuss', 'done'].forEach(col => document.getElementById(col).innerHTML = '');
+        // --- MOVE FUNCTION (MOBIL) ---
+        window.moveCard = function(id, direction) {
+            const c = cards.find(x => x.id === id);
+            if (!c) return;
             
-            const iconEdit = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
-            const iconTrash = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
-            const iconThumbUp = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 9V5a3 3 0 0 0-3-3l-4 9v11h11.28a2 2 0 0 0 2-1.7l1.38-9a2 2 0 0 0-2-2.3zM7 22H4a2 2 0 0 1-2-2v-7a2 2 0 0 1 2-2h3"></path></svg>`;
-            const iconThumbDown = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 15v4a3 3 0 0 0 3 3l4-9V2H5.72a2 2 0 0 0-2 1.7l-1.38 9a2 2 0 0 0 2 2.3zm7-13h2.67A2.31 2.31 0 0 1 22 4v7a2.31 2.31 0 0 1-2.33 2H17"></path></svg>`;
+            const currentIndex = COLUMNS.indexOf(c.column);
+            let newIndex = currentIndex + direction;
+            
+            // Kolla så vi inte går utanför
+            if (newIndex >= 0 && newIndex < COLUMNS.length) {
+                c.column = COLUMNS[newIndex];
+                save();
+            }
+        }
 
-            cards.forEach(card => {
-                const myVotes = myVotedCards.filter(id => id === card.id).length;
-                const cardEl = document.createElement('div');
-                cardEl.className = 'card'; cardEl.draggable = true; cardEl.id = card.id; cardEl.style.borderLeftColor = card.color;
-                cardEl.addEventListener('dragstart', window.drag);
+        window.vote = function(id, delta) {
+            const c = cards.find(x => x.id === id);
+            if (!c) return;
+            
+            if (delta > 0) { // Upp
+                if (myVotedCards.length >= MAX_VOTES) { alert("Slut på röster"); return; }
+                c.votes++;
+                myVotedCards.push(id);
+            } else { // Ner
+                if (!myVotedCards.includes(id)) return;
+                if (c.votes > 0) c.votes--;
+                myVotedCards.splice(myVotedCards.indexOf(id), 1);
+            }
+            localStorage.setItem('myVotedCards', JSON.stringify(myVotedCards));
+            save();
+        }
+
+        // --- RENDER ---
+        function renderBoard() {
+            document.getElementById('votes-left').innerText = MAX_VOTES - myVotedCards.length;
+            COLUMNS.forEach(col => document.getElementById(col).innerHTML = '');
+            
+            // Ikoner
+            const iEdit = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
+            const iTrash = `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+
+            cards.forEach(c => {
+                const myVotes = myVotedCards.filter(x => x === c.id).length;
+                const colIndex = COLUMNS.indexOf(c.column);
                 
-                cardEl.innerHTML = `
+                // Flytt-knappar logik
+                const canMoveLeft = colIndex > 0;
+                const canMoveRight = colIndex < COLUMNS.length - 1;
+
+                const el = document.createElement('div');
+                el.className = 'card';
+                el.style.borderLeftColor = c.color;
+                
+                el.innerHTML = `
                     <div class="card-top">
-                        <div class="card-text">${card.text}</div>
+                        <div class="card-text">${c.text}</div>
                         <div class="card-actions-top">
-                            <button class="icon-btn" onclick="editCard(${card.id})">${iconEdit}</button>
-                            <button class="icon-btn delete-btn" onclick="deleteCard(${card.id})">${iconTrash}</button>
+                            <button class="icon-btn" onclick="editCard(${c.id})">${iEdit}</button>
+                            <button class="icon-btn delete-btn" onclick="deleteCard(${c.id})">${iTrash}</button>
                         </div>
                     </div>
+                    
+                    <div class="move-controls">
+                        <button class="move-btn" onclick="moveCard(${c.id}, -1)" ${!canMoveLeft?'disabled':''}>⬅️</button>
+                        <span style="font-size:0.7rem; opacity:0.5">FLYTTA</span>
+                        <button class="move-btn" onclick="moveCard(${c.id}, 1)" ${!canMoveRight?'disabled':''}>➡️</button>
+                    </div>
+
                     <div class="card-bottom">
-                        <div class="card-meta">#${card.id.toString().slice(-4)} ${myVotes > 0 ? `<span class="my-vote-badge">Du: ${myVotes}</span>` : ''}</div>
+                        <div class="card-meta">#${c.id.toString().slice(-4)} ${myVotes>0?`(Du:${myVotes})`:''}</div>
                         <div class="vote-pill">
-                            <button class="vote-btn vote-down" onclick="removeVote(${card.id})" ${myVotes === 0 ? 'disabled' : ''}>${iconThumbDown}</button>
-                            <span class="vote-count">${card.votes}</span>
-                            <button class="vote-btn vote-up" onclick="addVote(${card.id})" ${(MAX_VOTES - myVotedCards.length) <= 0 ? 'disabled' : ''}>${iconThumbUp}</button>
+                            <button class="vote-btn" onclick="vote(${c.id}, -1)" ${myVotes===0?'disabled':''}>👎</button>
+                            <span style="font-weight:bold; padding:0 5px;">${c.votes}</span>
+                            <button class="vote-btn vote-up" onclick="vote(${c.id}, 1)" ${(MAX_VOTES-myVotedCards.length)<=0?'disabled':''}>👍</button>
                         </div>
-                    </div>`;
-                document.getElementById(card.column).appendChild(cardEl);
+                    </div>
+                `;
+                document.getElementById(c.column).appendChild(el);
             });
-            document.querySelectorAll('.task-list').forEach(list => { list.ondrop = window.drop; list.ondragover = window.allowDrop; list.ondragleave = window.leaveDrop; });
         }
     </script>
 </body>
