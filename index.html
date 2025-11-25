@@ -225,13 +225,13 @@
         // KONFIGURATION - Klistra in dina uppgifter här nedanför!
         // --------------------------------------------------------------
         const firebaseConfig = {
-          apiKey: "AIzaSyCHrUufAISfVGwGICTDcVaWGt0vzLVRFpk",
-          authDomain: "team-kanban.firebaseapp.com",
-          databaseURL: "https://team-kanban-default-rtdb.europe-west1.firebasedatabase.app",
-          projectId: "team-kanban",
-          storageBucket: "team-kanban.firebasestorage.app",
-          messagingSenderId: "457664936790",
-          appId: "1:457664936790:web:a77f6fe962b365fb1034f7"
+  apiKey: "AIzaSyCHrUufAISfVGwGICTDcVaWGt0vzLVRFpk",
+  authDomain: "team-kanban.firebaseapp.com",
+  databaseURL: "https://team-kanban-default-rtdb.europe-west1.firebasedatabase.app",
+  projectId: "team-kanban",
+  storageBucket: "team-kanban.firebasestorage.app",
+  messagingSenderId: "457664936790",
+  appId: "1:457664936790:web:a77f6fe962b365fb1034f7"
         };
         // --------------------------------------------------------------
 
@@ -319,5 +319,96 @@
         // RÖSTA (Toggle)
         window.toggleVote = function(id) {
             const cardIndex = cards.findIndex(c => c.id === id);
-            if (cardIndex === -1
+            if (cardIndex === -1) return;
 
+            const hasVoted = myVotedCards.includes(id);
+
+            if (hasVoted) {
+                // TA BORT RÖST
+                cards[cardIndex].votes--;
+                myVotedCards = myVotedCards.filter(vId => vId !== id);
+            } else {
+                // LÄGG TILL RÖST (om man har kvar röster)
+                if (myVotedCards.length >= MAX_VOTES) {
+                    alert("Du har slut på röster!");
+                    return;
+                }
+                cards[cardIndex].votes++;
+                myVotedCards.push(id);
+            }
+
+            // Spara lokalt och i molnet
+            localStorage.setItem('myVotedCards', JSON.stringify(myVotedCards));
+            saveToFirebase();
+        };
+
+        // DRAG AND DROP
+        window.allowDrop = (ev) => { ev.preventDefault(); ev.currentTarget.classList.add('drag-over'); }
+        window.leaveDrop = (ev) => { ev.currentTarget.classList.remove('drag-over'); }
+        window.drag = (ev) => { ev.dataTransfer.setData("text/plain", ev.target.id); }
+
+        window.drop = function(ev) {
+            ev.preventDefault();
+            const list = ev.currentTarget;
+            list.classList.remove('drag-over');
+            
+            const cardId = parseInt(ev.dataTransfer.getData("text/plain"));
+            const newColumnId = list.id;
+
+            const cardIndex = cards.findIndex(c => c.id === cardId);
+            if (cardIndex !== -1 && cards[cardIndex].column !== newColumnId) {
+                cards[cardIndex].column = newColumnId;
+                saveToFirebase();
+            }
+        }
+
+        // --- RENDERING ---
+        function renderBoard() {
+            updateVotesDisplay();
+            const votesLeft = MAX_VOTES - myVotedCards.length;
+
+            ['proposal', 'discuss', 'done'].forEach(col => {
+                document.getElementById(col).innerHTML = '';
+            });
+
+            cards.forEach(card => {
+                const isVotedByMe = myVotedCards.includes(card.id);
+                
+                const cardEl = document.createElement('div');
+                cardEl.className = 'card';
+                cardEl.draggable = true;
+                cardEl.id = card.id;
+                cardEl.style.borderLeftColor = card.color;
+                
+                cardEl.addEventListener('dragstart', window.drag);
+
+                // Knapp-logik: Om jag röstat = Grön knapp, annars transparent
+                // Disabla om jag har slut på röster OCH inte redan röstat på detta kort
+                const btnClass = isVotedByMe ? 'vote-btn voted' : 'vote-btn';
+                const btnDisabled = (!isVotedByMe && votesLeft <= 0) ? 'disabled' : '';
+                const btnText = isVotedByMe ? `👍 ${card.votes}` : `👍 ${card.votes}`;
+
+                cardEl.innerHTML = `
+                    <div class="card-header">
+                        <div class="card-text">${card.text}</div>
+                        <button class="delete-btn" onclick="deleteCard(${card.id})" title="Ta bort">–</button>
+                    </div>
+                    <div class="card-actions">
+                        <span></span>
+                        <button class="${btnClass}" onclick="toggleVote(${card.id})" ${btnDisabled}>${btnText}</button>
+                    </div>
+                `;
+
+                document.getElementById(card.column).appendChild(cardEl);
+            });
+
+            // Koppla drop-events
+            document.querySelectorAll('.task-list').forEach(list => {
+                list.ondrop = window.drop;
+                list.ondragover = window.allowDrop;
+                list.ondragleave = window.leaveDrop;
+            });
+        }
+    </script>
+</body>
+</html>
