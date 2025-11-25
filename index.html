@@ -110,10 +110,9 @@
             font-size: 1.1em;
             flex: 1;
             margin-right: 10px;
-            white-space: pre-wrap; /* Bevarar radbrytningar */
+            white-space: pre-wrap;
         }
 
-        /* --- Nya stilar för knapp-gruppen i hörnet --- */
         .card-controls-top {
             display: flex;
             gap: 5px;
@@ -134,7 +133,6 @@
 
         .edit-btn { color: #555; font-size: 1.1em;}
         .edit-btn:hover { color: var(--edit); }
-        /* --------------------------------------------- */
 
         .card-actions {
             display: flex;
@@ -181,6 +179,14 @@
             color: var(--accent);
             min-width: 20px;
             text-align: center;
+        }
+        
+        /* Indikator för mina röster på kortet */
+        .my-vote-indicator {
+            font-size: 0.8em;
+            color: var(--success);
+            margin-left: 5px;
+            font-weight: normal;
         }
 
         .add-card-section {
@@ -275,6 +281,7 @@
         localStorage.setItem('userColor', userColor);
         document.getElementById('my-color-box').style.backgroundColor = userColor;
 
+        // myVotedCards innehåller nu IDn flera gånger om man röstat flera gånger: [123, 123, 456]
         let myVotedCards = JSON.parse(localStorage.getItem('myVotedCards')) || [];
         
         function updateVotesDisplay() {
@@ -321,15 +328,11 @@
             if (event.key === "Enter") window.createCard();
         });
 
-        // --- REDIGERA TEXT (NY FUNKTION) ---
+        // --- REDIGERA ---
         window.editCard = function(id) {
             const card = cards.find(c => c.id === id);
             if (!card) return;
-
-            // Använder prompt för att vara säker vid realtidsuppdateringar
             const newText = prompt("Redigera texten:", card.text);
-            
-            // Om man trycker Cancel är newText null. Vi kollar också att det inte är tomt.
             if (newText !== null && newText.trim() !== "") {
                 card.text = newText.trim();
                 saveToFirebase();
@@ -340,6 +343,8 @@
         window.deleteCard = function(id) {
             if(confirm("Vill du ta bort denna lapp?")) {
                 cards = cards.filter(c => c.id !== id);
+                
+                // Ta bort ALLA mina röster som var kopplade till detta kort
                 if(myVotedCards.includes(id)) {
                     myVotedCards = myVotedCards.filter(vId => vId !== id);
                     localStorage.setItem('myVotedCards', JSON.stringify(myVotedCards));
@@ -349,13 +354,14 @@
             }
         };
 
-        // --- RÖSTNING ---
+        // --- RÖSTNING (UPPDATERAD LOGIK) ---
         window.addVote = function(id) {
             if (myVotedCards.length >= MAX_VOTES) {
                 alert("Du har slut på röster!");
                 return;
             }
-            if (myVotedCards.includes(id)) return;
+            // Vi har tagit bort spärren som kollar om ID redan finns i listan.
+            // Nu får man rösta på samma ID flera gånger.
 
             const cardIndex = cards.findIndex(c => c.id === id);
             if (cardIndex !== -1) {
@@ -367,12 +373,18 @@
         };
 
         window.removeVote = function(id) {
-            if (!myVotedCards.includes(id)) return;
+            if (!myVotedCards.includes(id)) return; // Har inte röstat alls
 
             const cardIndex = cards.findIndex(c => c.id === id);
             if (cardIndex !== -1) {
                 if (cards[cardIndex].votes > 0) cards[cardIndex].votes--;
-                myVotedCards = myVotedCards.filter(vId => vId !== id);
+                
+                // Hitta ENDAST EN instans av detta ID och ta bort den (inte alla)
+                const indexToRemove = myVotedCards.indexOf(id);
+                if (indexToRemove > -1) {
+                    myVotedCards.splice(indexToRemove, 1);
+                }
+
                 localStorage.setItem('myVotedCards', JSON.stringify(myVotedCards));
                 saveToFirebase();
             }
@@ -408,7 +420,8 @@
             });
 
             cards.forEach(card => {
-                const isVotedByMe = myVotedCards.includes(card.id);
+                // Räkna hur många gånger jag röstat på just detta kort
+                const myVotesOnThisCard = myVotedCards.filter(id => id === card.id).length;
                 
                 const cardEl = document.createElement('div');
                 cardEl.className = 'card';
@@ -418,8 +431,14 @@
                 
                 cardEl.addEventListener('dragstart', window.drag);
 
-                const upDisabled = isVotedByMe || votesLeft <= 0;
-                const downDisabled = !isVotedByMe;
+                // Knapp-logik: 
+                // Upp: Disabla BARA om totala rösterna är slut.
+                const upDisabled = votesLeft <= 0;
+                // Ner: Disabla om jag inte lagt NÅGON röst på detta kort.
+                const downDisabled = myVotesOnThisCard === 0;
+
+                // Visa mina egna röster bredvid totalen om jag röstat
+                const myVoteText = myVotesOnThisCard > 0 ? `<span class="my-vote-indicator">(Du: ${myVotesOnThisCard})</span>` : '';
 
                 cardEl.innerHTML = `
                     <div class="card-header">
@@ -430,7 +449,7 @@
                         </div>
                     </div>
                     <div class="card-actions">
-                        <div style="font-size:0.8em">ID: #${card.id.toString().slice(-4)}</div>
+                        <div style="font-size:0.8em">ID: #${card.id.toString().slice(-4)} ${myVoteText}</div>
                         
                         <div class="vote-controls">
                             <button class="vote-btn vote-down" onclick="removeVote(${card.id})" ${downDisabled ? 'disabled' : ''} title="Ta bort röst">👎</button>
@@ -452,4 +471,3 @@
     </script>
 </body>
 </html>
-
