@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+    <!DOCTYPE html>
 <html lang="sv">
 <head>
     <meta charset="UTF-8">
@@ -9,8 +9,9 @@
             --bg-color: #121212;
             --col-bg: #1e1e1e;
             --text-color: #e0e0e0;
-            --accent: #ffffff; /* Ändrat till vit */
+            --accent: #ffffff; 
             --danger: #ff4444;
+            --success: #00C851;
         }
 
         body {
@@ -25,7 +26,6 @@
             box-sizing: border-box;
         }
 
-        /* Uppdaterad rubrikstil */
         h1 { 
             text-align: center; 
             color: var(--accent); 
@@ -101,23 +101,24 @@
             display: flex;
             justify-content: space-between;
             align-items: flex-start;
-            margin-bottom: 8px;
+            margin-bottom: 12px;
         }
 
         .card-text { 
             word-wrap: break-word; 
             font-size: 1.1em;
             flex: 1;
+            margin-right: 10px;
         }
 
         .delete-btn {
             background: none;
             border: none;
-            color: #666;
+            color: #555;
             cursor: pointer;
-            font-size: 1.2em;
-            line-height: 0.8;
-            padding: 0 0 0 10px;
+            font-size: 1.5em;
+            line-height: 0.5;
+            padding: 0;
         }
         .delete-btn:hover { color: var(--danger); }
 
@@ -125,34 +126,51 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            font-size: 0.8em;
+            font-size: 0.9em;
             color: #aaa;
             border-top: 1px solid #444;
-            padding-top: 8px;
-            margin-top: 8px;
+            padding-top: 10px;
+        }
+
+        .vote-controls {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background-color: #333;
+            border-radius: 20px;
+            padding: 2px;
         }
 
         .vote-btn {
             background: none;
-            border: 1px solid #555;
+            border: none;
             color: #888;
-            border-radius: 4px;
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
             cursor: pointer;
-            padding: 4px 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.1em;
             transition: all 0.2s;
         }
 
         .vote-btn:hover:not(:disabled) { background-color: rgba(255, 255, 255, 0.1); color: white; }
-        
-        /* Stil för när jag har röstat på kortet */
-        .vote-btn.voted {
-            background-color: var(--accent);
-            color: black;
-            border-color: var(--accent);
-            font-weight: bold;
-        }
+        .vote-btn:disabled { opacity: 0.2; cursor: default; }
 
-        .vote-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+        /* Stil när man röstar upp */
+        .vote-up:hover:not(:disabled) { color: var(--success); }
+        
+        /* Stil när man röstar ner (ångrar) */
+        .vote-down:hover:not(:disabled) { color: var(--danger); }
+
+        .vote-count {
+            font-weight: bold;
+            color: var(--accent);
+            min-width: 20px;
+            text-align: center;
+        }
 
         .add-card-section {
             display: flex;
@@ -225,13 +243,13 @@
         // KONFIGURATION - Klistra in dina uppgifter här nedanför!
         // --------------------------------------------------------------
         const firebaseConfig = {
-  apiKey: "AIzaSyCHrUufAISfVGwGICTDcVaWGt0vzLVRFpk",
-  authDomain: "team-kanban.firebaseapp.com",
-  databaseURL: "https://team-kanban-default-rtdb.europe-west1.firebasedatabase.app",
-  projectId: "team-kanban",
-  storageBucket: "team-kanban.firebasestorage.app",
-  messagingSenderId: "457664936790",
-  appId: "1:457664936790:web:a77f6fe962b365fb1034f7"
+          apiKey: "AIzaSyCHrUufAISfVGwGICTDcVaWGt0vzLVRFpk",
+          authDomain: "team-kanban.firebaseapp.com",
+          databaseURL: "https://team-kanban-default-rtdb.europe-west1.firebasedatabase.app",
+          projectId: "team-kanban",
+          storageBucket: "team-kanban.firebasestorage.app",
+          messagingSenderId: "457664936790",
+          appId: "1:457664936790:web:a77f6fe962b365fb1034f7"
         };
         // --------------------------------------------------------------
 
@@ -295,7 +313,6 @@
         }
         document.getElementById('add-btn').addEventListener('click', createCard);
         
-        // Enter-tangent för att skapa kort
         document.getElementById('new-card-text').addEventListener("keypress", function(event) {
             if (event.key === "Enter") window.createCard();
         });
@@ -305,7 +322,7 @@
             if(confirm("Vill du ta bort denna lapp?")) {
                 cards = cards.filter(c => c.id !== id);
                 
-                // Rensa även om jag hade röstat på det borttagna kortet
+                // Rensa om jag hade röstat på det borttagna kortet
                 if(myVotedCards.includes(id)) {
                     myVotedCards = myVotedCards.filter(vId => vId !== id);
                     localStorage.setItem('myVotedCards', JSON.stringify(myVotedCards));
@@ -316,30 +333,36 @@
             }
         };
 
-        // RÖSTA (Toggle)
-        window.toggleVote = function(id) {
+        // LÄGG TILL RÖST (THUMBS UP)
+        window.addVote = function(id) {
+            if (myVotedCards.length >= MAX_VOTES) {
+                alert("Du har slut på röster!");
+                return;
+            }
+            if (myVotedCards.includes(id)) return; // Har redan röstat
+
             const cardIndex = cards.findIndex(c => c.id === id);
-            if (cardIndex === -1) return;
-
-            const hasVoted = myVotedCards.includes(id);
-
-            if (hasVoted) {
-                // TA BORT RÖST
-                cards[cardIndex].votes--;
-                myVotedCards = myVotedCards.filter(vId => vId !== id);
-            } else {
-                // LÄGG TILL RÖST (om man har kvar röster)
-                if (myVotedCards.length >= MAX_VOTES) {
-                    alert("Du har slut på röster!");
-                    return;
-                }
+            if (cardIndex !== -1) {
                 cards[cardIndex].votes++;
                 myVotedCards.push(id);
+                localStorage.setItem('myVotedCards', JSON.stringify(myVotedCards));
+                saveToFirebase();
             }
+        };
 
-            // Spara lokalt och i molnet
-            localStorage.setItem('myVotedCards', JSON.stringify(myVotedCards));
-            saveToFirebase();
+        // TA BORT RÖST (THUMBS DOWN)
+        window.removeVote = function(id) {
+            if (!myVotedCards.includes(id)) return; // Har inte röstat
+
+            const cardIndex = cards.findIndex(c => c.id === id);
+            if (cardIndex !== -1) {
+                // Skydd så att vi inte får minusröster om något blir fel
+                if (cards[cardIndex].votes > 0) cards[cardIndex].votes--;
+                
+                myVotedCards = myVotedCards.filter(vId => vId !== id);
+                localStorage.setItem('myVotedCards', JSON.stringify(myVotedCards));
+                saveToFirebase();
+            }
         };
 
         // DRAG AND DROP
@@ -382,11 +405,12 @@
                 
                 cardEl.addEventListener('dragstart', window.drag);
 
-                // Knapp-logik: Om jag röstat = Grön knapp, annars transparent
-                // Disabla om jag har slut på röster OCH inte redan röstat på detta kort
-                const btnClass = isVotedByMe ? 'vote-btn voted' : 'vote-btn';
-                const btnDisabled = (!isVotedByMe && votesLeft <= 0) ? 'disabled' : '';
-                const btnText = isVotedByMe ? `👍 ${card.votes}` : `👍 ${card.votes}`;
+                // --- LOGIK FÖR KNAPPARNA ---
+                // Upp-knapp: Aktiv om jag inte röstat OCH har röster kvar
+                const upDisabled = isVotedByMe || votesLeft <= 0;
+                
+                // Ner-knapp: Aktiv endast om jag HAR röstat
+                const downDisabled = !isVotedByMe;
 
                 cardEl.innerHTML = `
                     <div class="card-header">
@@ -394,8 +418,13 @@
                         <button class="delete-btn" onclick="deleteCard(${card.id})" title="Ta bort">–</button>
                     </div>
                     <div class="card-actions">
-                        <span></span>
-                        <button class="${btnClass}" onclick="toggleVote(${card.id})" ${btnDisabled}>${btnText}</button>
+                        <div style="font-size:0.8em">ID: #${card.id.toString().slice(-4)}</div>
+                        
+                        <div class="vote-controls">
+                            <button class="vote-btn vote-down" onclick="removeVote(${card.id})" ${downDisabled ? 'disabled' : ''} title="Ta bort röst">👎</button>
+                            <span class="vote-count">${card.votes}</span>
+                            <button class="vote-btn vote-up" onclick="addVote(${card.id})" ${upDisabled ? 'disabled' : ''} title="Rösta">👍</button>
+                        </div>
                     </div>
                 `;
 
