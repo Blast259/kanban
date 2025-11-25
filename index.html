@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Team Kanban</title>
+    <title>Team Kanban (Online)</title>
     <style>
         :root {
             --bg-color: #121212;
             --col-bg: #1e1e1e;
             --text-color: #ffffff;
-            --accent: #ffd700; /* Gult som du gillade */
+            --accent: #ffd700;
         }
 
         body {
@@ -62,11 +62,11 @@
         #col-discuss { border-color: #4ecdc4; }
         #col-done { border-color: #ffe66d; }
 
-        /* Drag and Drop zoner */
         .task-list {
             flex: 1;
             padding: 10px 0;
             transition: background 0.2s;
+            min-height: 100px;
         }
         
         .task-list.drag-over {
@@ -75,7 +75,6 @@
             border-radius: 4px;
         }
 
-        /* Kortet */
         .card {
             background-color: #2c2c2c;
             border-radius: 6px;
@@ -83,7 +82,7 @@
             margin-bottom: 10px;
             cursor: grab;
             box-shadow: 0 2px 5px rgba(0,0,0,0.3);
-            border-left: 5px solid transparent; /* Plats för användarfärg */
+            border-left: 5px solid transparent;
             position: relative;
         }
 
@@ -114,7 +113,6 @@
         .vote-btn:hover { background-color: rgba(255, 215, 0, 0.1); }
         .vote-btn:disabled { opacity: 0.3; cursor: not-allowed; }
 
-        /* Input sektion */
         .add-card-section {
             display: flex;
             gap: 10px;
@@ -140,14 +138,15 @@
             font-weight: bold;
             font-size: 1.2em;
         }
-
-        #add-btn:hover { opacity: 0.8; }
-
+        
+        /* Loading indikator */
+        #status { text-align: center; color: #666; margin-bottom: 10px; font-size: 0.8em; }
     </style>
 </head>
 <body>
 
-    <h1>Kanban Tavla</h1>
+    <h1>Team Kanban</h1>
+    <div id="status">Ansluter till databas...</div>
     
     <div class="user-info">
         Din färg: <span id="my-color-box" style="display:inline-block; width:15px; height:15px; border-radius:50%; vertical-align:middle;"></span> 
@@ -156,46 +155,85 @@
 
     <div class="add-card-section">
         <input type="text" id="new-card-text" placeholder="Skriv ny aktivitet här...">
-        <button id="add-btn" title="Lägg till">+</button>
+        <button id="add-btn">+</button>
     </div>
 
     <div class="board">
-        <div class="column">
+        <div class="column" id="col-proposal">
             <h2>Förslag</h2>
-            <div class="task-list" id="proposal" ondrop="drop(event)" ondragover="allowDrop(event)">
-                </div>
+            <div class="task-list" id="proposal"></div>
         </div>
 
-        <div class="column">
+        <div class="column" id="col-discuss">
             <h2>Diskutera</h2>
-            <div class="task-list" id="discuss" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+            <div class="task-list" id="discuss"></div>
         </div>
 
-        <div class="column">
+        <div class="column" id="col-done">
             <h2>Klart</h2>
-            <div class="task-list" id="done" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+            <div class="task-list" id="done"></div>
         </div>
     </div>
 
-    <script>
-        // --- 1. Hantera Användare (Simulerad) ---
-        // Generera en slumpmässig färg för denna session/användare
+    <script type="module">
+        // Importera funktioner vi behöver från Firebase
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getDatabase, ref, set, onValue, push } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js";
+
+        // --------------------------------------------------------------
+        // KONFIGURATION - Klistra in dina uppgifter här nedanför!
+        // --------------------------------------------------------------
+        const firebaseConfig = {            
+			  apiKey: "AIzaSyCHrUufAISfVGwGICTDcVaWGt0vzLVRFpk",
+			  authDomain: "team-kanban.firebaseapp.com",
+			  databaseURL: "https://team-kanban-default-rtdb.europe-west1.firebasedatabase.app",
+			  projectId: "team-kanban",
+			  storageBucket: "team-kanban.firebasestorage.app",
+			  messagingSenderId: "457664936790",
+			  appId: "1:457664936790:web:a77f6fe962b365fb1034f7"
+        };
+        // --------------------------------------------------------------
+
+        // Starta Firebase
+        const app = initializeApp(firebaseConfig);
+        const db = getDatabase(app);
+        
+        // Lokala variabler
+        let cards = []; // Denna synkas nu med databasen
         const userColor = localStorage.getItem('userColor') || '#' + Math.floor(Math.random()*16777215).toString(16);
         localStorage.setItem('userColor', userColor);
         document.getElementById('my-color-box').style.backgroundColor = userColor;
 
-        let myVotes = 5;
+        let myVotes = 5; // Hålls lokalt tills vidare
         const votesDisplay = document.getElementById('votes-left');
 
-        // --- 2. Hantera Kort & Data ---
-        let cards = JSON.parse(localStorage.getItem('kanbanCards')) || [];
-
-        function saveCards() {
-            localStorage.setItem('kanbanCards', JSON.stringify(cards));
+        // --- Hämta data från Firebase (Lyssnar efter ändringar) ---
+        const cardsRef = ref(db, 'kanban/cards');
+        
+        onValue(cardsRef, (snapshot) => {
+            document.getElementById('status').innerText = "🟢 Synkad med molnet";
+            const data = snapshot.val();
+            // Om databasen är tom, sätt cards till tom lista
+            cards = data ? data : []; 
             renderBoard();
+        });
+
+        // --- Funktion för att spara till Firebase ---
+        function saveToFirebase() {
+            document.getElementById('status').innerText = "🟡 Sparar...";
+            // Vi skriver över hela listan med kort till databasen
+            set(cardsRef, cards)
+                .then(() => {
+                    // Sparat ok
+                })
+                .catch((error) => {
+                    console.error("Fel vid sparning: ", error);
+                    alert("Kunde inte spara. Kolla att databasen är i 'Test Mode'.");
+                });
         }
 
-        function createCard() {
+        // --- Skapa kort ---
+        window.createCard = function() {
             const input = document.getElementById('new-card-text');
             const text = input.value.trim();
             if (!text) return;
@@ -205,20 +243,60 @@
                 text: text,
                 column: 'proposal',
                 color: userColor,
-                votes: 0,
-                voters: [] // Håller koll på vilka som röstat (simulerat)
+                votes: 0
             };
 
             cards.push(newCard);
             input.value = '';
-            saveCards();
+            saveToFirebase(); // Skicka till molnet
         }
-
         document.getElementById('add-btn').addEventListener('click', createCard);
 
-        // --- 3. Rendera Tavlan ---
+        // --- Röstning ---
+        window.vote = function(id) {
+            if (myVotes <= 0) return;
+            
+            // Hitta kortet och uppdatera
+            const cardIndex = cards.findIndex(c => c.id === id);
+            if (cardIndex !== -1) {
+                cards[cardIndex].votes++;
+                myVotes--;
+                saveToFirebase(); // Skicka till molnet
+            }
+        };
+
+        // --- Drag and Drop Logic ---
+        // Vi måste definiera dessa på window-objektet eftersom vi kör type="module"
+        window.allowDrop = function(ev) {
+            ev.preventDefault();
+            ev.currentTarget.classList.add('drag-over');
+        }
+
+        window.leaveDrop = function(ev) {
+             ev.currentTarget.classList.remove('drag-over');
+        }
+
+        window.drag = function(ev) {
+            ev.dataTransfer.setData("text/plain", ev.target.id);
+        }
+
+        window.drop = function(ev) {
+            ev.preventDefault();
+            const list = ev.currentTarget;
+            list.classList.remove('drag-over');
+            
+            const cardId = parseInt(ev.dataTransfer.getData("text/plain"));
+            const newColumnId = list.id;
+
+            const cardIndex = cards.findIndex(c => c.id === cardId);
+            if (cardIndex !== -1) {
+                cards[cardIndex].column = newColumnId;
+                saveToFirebase(); // Skicka till molnet
+            }
+        }
+
+        // --- Rendera (Rita upp) ---
         function renderBoard() {
-            // Rensa kolumner
             ['proposal', 'discuss', 'done'].forEach(col => {
                 document.getElementById(col).innerHTML = '';
             });
@@ -230,12 +308,9 @@
                 cardEl.id = card.id;
                 cardEl.style.borderLeftColor = card.color;
                 
-                // Drag start event
-                cardEl.addEventListener('dragstart', (e) => {
-                    e.dataTransfer.setData("text/plain", card.id);
-                });
+                // Koppla drag-events
+                cardEl.addEventListener('dragstart', window.drag);
 
-                // HTML innehåll i kortet
                 cardEl.innerHTML = `
                     <div class="card-text">${card.text}</div>
                     <div class="card-actions">
@@ -244,57 +319,18 @@
                     </div>
                 `;
 
-                // Lägg i rätt kolumn
                 document.getElementById(card.column).appendChild(cardEl);
             });
 
             votesDisplay.innerText = myVotes;
-        }
-
-        // --- 4. Röstningslogik ---
-        window.vote = function(id) {
-            if (myVotes <= 0) return;
             
-            const card = cards.find(c => c.id === id);
-            if (card) {
-                card.votes++;
-                myVotes--;
-                saveCards(); // Rendera om för att uppdatera UI
-            }
-        };
-
-        // --- 5. Drag and Drop Logik ---
-        window.allowDrop = function(ev) {
-            ev.preventDefault();
-            ev.currentTarget.classList.add('drag-over');
+            // Koppla drop-events till kolumnerna
+            document.querySelectorAll('.task-list').forEach(list => {
+                list.ondrop = window.drop;
+                list.ondragover = window.allowDrop;
+                list.ondragleave = window.leaveDrop;
+            });
         }
-
-        // Ta bort styling när man drar ut (optional polish)
-        document.addEventListener('dragleave', (ev) => {
-            if(ev.target.classList.contains('task-list')) {
-                ev.target.classList.remove('drag-over');
-            }
-        });
-
-        window.drop = function(ev) {
-            ev.preventDefault();
-            const list = ev.currentTarget; // Kolumnen vi släpper i
-            list.classList.remove('drag-over');
-            
-            const cardId = parseInt(ev.dataTransfer.getData("text/plain"));
-            const newColumnId = list.id;
-
-            // Uppdatera datamodellen
-            const card = cards.find(c => c.id === cardId);
-            if (card) {
-                card.column = newColumnId;
-                saveCards();
-            }
-        }
-
-        // Starta
-        renderBoard();
-
     </script>
 </body>
 </html>
