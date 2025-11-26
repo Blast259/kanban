@@ -5,193 +5,72 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Lean Coffee | Agile Board</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500&display=swap" rel="stylesheet">
-    
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/default.css">
 
     <style>
         :root {
-            --bg-body: #0f172a;
-            --bg-surface: #1e293b;
-            --bg-card: #334155;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --text-muted: #64748b;
-            --primary: #38bdf8;
-            --success: #4ade80;
-            --danger: #f87171;
-            --border: #475569;
+            --bg-body: #0f172a; --bg-surface: #1e293b; --bg-card: #334155;
+            --text-primary: #f8fafc; --text-secondary: #94a3b8; --text-muted: #64748b;
+            --primary: #38bdf8; --success: #4ade80; --danger: #f87171; --border: #475569;
         }
-
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
-
-        body {
-            background-color: var(--bg-body);
-            color: var(--text-primary);
-            font-family: 'Inter', sans-serif;
-            margin: 0;
-            display: flex;
-            flex-direction: column;
-            height: 100vh;
-            overflow: hidden;
-        }
-
-        header {
-            background-color: var(--bg-surface);
-            border-bottom: 1px solid var(--border);
-            padding: 0.8rem;
-            display: grid;
-            grid-template-columns: auto 1fr auto; 
-            align-items: center;
-            gap: 10px;
-            z-index: 100;
-        }
-
+        body { background-color: var(--bg-body); color: var(--text-primary); font-family: 'Inter', sans-serif; margin: 0; display: flex; flex-direction: column; height: 100vh; overflow: hidden; }
+        
+        header { background-color: var(--bg-surface); border-bottom: 1px solid var(--border); padding: 0.8rem; display: grid; grid-template-columns: auto 1fr auto; align-items: center; gap: 10px; z-index: 100; }
         .brand h1 { font-size: 1rem; font-weight: 700; margin: 0; white-space: nowrap; }
-
+        
         .timer-section { display: flex; justify-content: center; align-items: center; gap: 8px; }
-        .timer-display {
-            font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; font-weight: 700;
-            min-width: 55px; text-align: center;
-        }
+        .timer-display { font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; font-weight: 700; min-width: 55px; text-align: center; }
         .timer-display.finished { color: var(--danger); animation: pulse 1s infinite; }
         @keyframes pulse { 0% { opacity: 1; } 50% { opacity: 0.5; } 100% { opacity: 1; } }
-
-        .timer-input {
-            background: var(--bg-body); border: 1px solid var(--border); color: var(--text-primary);
-            width: 35px; text-align: center; border-radius: 4px; padding: 4px;
-        }
-        .btn-small {
-            background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary);
-            border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 0.8rem;
-        }
-
+        .timer-input { background: var(--bg-body); border: 1px solid var(--border); color: var(--text-primary); width: 35px; text-align: center; border-radius: 4px; padding: 4px; }
+        .btn-small { background: var(--bg-card); border: 1px solid var(--border); color: var(--text-primary); border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 0.8rem; }
+        
         .user-panel { display: flex; gap: 5px; justify-content: flex-end; font-size: 0.75rem; }
-        .stat-pill {
-            background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 20px;
-            display: flex; align-items: center; gap: 5px; border: 1px solid rgba(255,255,255,0.1);
-        }
-
+        .stat-pill { background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 20px; display: flex; align-items: center; gap: 5px; border: 1px solid rgba(255,255,255,0.1); }
+        
         .controls-area { padding: 10px; display: flex; justify-content: center; flex-shrink: 0; }
-        .input-group {
-            display: flex; width: 100%; max-width: 600px; background: var(--bg-surface);
-            padding: 4px; border-radius: 12px; border: 1px solid var(--border);
-        }
-        #new-card-text {
-            flex: 1; background: transparent; border: none; padding: 10px;
-            color: var(--text-primary); font-size: 16px; outline: none;
-        }
-        #add-btn {
-            background-color: var(--primary); color: #0f172a; border: none; border-radius: 8px;
-            width: 50px; font-weight: 600; font-size: 1.5rem; cursor: pointer;
-        }
-
+        .input-group { display: flex; width: 100%; max-width: 600px; background: var(--bg-surface); padding: 4px; border-radius: 12px; border: 1px solid var(--border); }
+        #new-card-text { flex: 1; background: transparent; border: none; padding: 10px; color: var(--text-primary); font-size: 16px; outline: none; }
+        #add-btn { background-color: var(--primary); color: #0f172a; border: none; border-radius: 8px; width: 50px; font-weight: 600; font-size: 1.5rem; cursor: pointer; }
+        
         .board { flex: 1; display: flex; }
-
-        .column {
-            background-color: var(--bg-surface); border-radius: 12px;
-            display: flex; flex-direction: column; border: 1px solid var(--border);
-            height: 100%;
-        }
-
-        .column-header {
-            padding: 10px; border-bottom: 1px solid var(--border);
-            display: flex; justify-content: space-between; align-items: center;
-            background: rgba(0,0,0,0.1); font-weight: 600; color: var(--text-secondary);
-        }
-
-        .task-list {
-            flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px;
-        }
+        .column { background-color: var(--bg-surface); border-radius: 12px; display: flex; flex-direction: column; border: 1px solid var(--border); height: 100%; }
+        .column-header { padding: 10px; border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.1); font-weight: 600; color: var(--text-secondary); }
+        .task-list { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .task-list.drag-over { background-color: rgba(56, 189, 248, 0.1); border: 2px dashed var(--primary); }
         
-        .task-list.drag-over {
-            background-color: rgba(56, 189, 248, 0.1);
-            border: 2px dashed var(--primary);
-        }
-
-        /* --- CARD STYLING --- */
-        .card {
-            background-color: var(--bg-card); border-radius: 8px; padding: 12px;
-            border-left: 4px solid transparent; position: relative;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.2);
-            touch-action: pan-y;
-            cursor: grab;
-            user-select: none; /* Förhindra textmarkering när man drar */
-        }
-        
-        /* Visuell feedback när man drar */
+        .card { background-color: var(--bg-card); border-radius: 8px; padding: 12px; border-left: 4px solid transparent; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.2); touch-action: pan-y; cursor: grab; user-select: none; }
         .card.mobile-drag-drop-active { opacity: 0.5; }
-
         .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
-        
-        /* Tillåt textmarkering i texten, men inte dra */
         .card-text { flex: 1; word-wrap: break-word; white-space: pre-wrap; line-height: 1.4; user-select: text; }
         
-        /* Fixade knappar: Inga konstiga event-stoppers, hanteras i JS istället */
-        .icon-btn {
-            background: rgba(255,255,255,0.05); border: none; color: var(--text-muted);
-            border-radius: 4px; padding: 10px; cursor: pointer; display: flex;
-        }
+        .icon-btn { background: rgba(255,255,255,0.05); border: none; color: var(--text-muted); border-radius: 4px; padding: 10px; cursor: pointer; display: flex; }
         .delete-btn { color: var(--danger); }
-
-        .mobile-move-controls {
-            display: flex; justify-content: space-between; margin-top: 10px;
-            padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05);
-        }
-        .move-btn {
-            background: none; border: 1px solid var(--border); color: var(--primary);
-            border-radius: 6px; padding: 8px 16px; font-size: 1rem; cursor: pointer;
-        }
+        
+        .mobile-move-controls { display: flex; justify-content: space-between; margin-top: 10px; padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05); }
+        .move-btn { background: none; border: 1px solid var(--border); color: var(--primary); border-radius: 6px; padding: 8px 16px; font-size: 1rem; cursor: pointer; }
         .move-btn:disabled { opacity: 0.1; }
-
-        .card-bottom {
-            display: flex; justify-content: space-between; align-items: center;
-            margin-top: 10px; padding-top: 5px; border-top: 1px solid rgba(255,255,255,0.05);
-        }
+        
+        .card-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 5px; border-top: 1px solid rgba(255,255,255,0.05); }
         .card-meta { font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; }
         .creator-symbol { font-size: 1.1rem; margin-right: 5px; }
-
-        .vote-pill {
-            display: flex; align-items: center; background-color: rgba(0,0,0,0.3);
-            border-radius: 20px; padding: 2px;
-            position: relative; 
-            z-index: 50; /* Mycket hög z-index för att ligga över dragytan */
-        }
         
-        .vote-btn {
-            background: none; border: none;
-            width: 48px; height: 48px; /* Stor touch-yta */
-            border-radius: 50%; cursor: pointer; 
-            display: flex; align-items: center; justify-content: center;
-            font-size: 1.3rem; color: var(--text-secondary);
-        }
-        
+        .vote-pill { display: flex; align-items: center; background-color: rgba(0,0,0,0.3); border-radius: 20px; padding: 2px; position: relative; z-index: 50; }
+        .vote-btn { background: none; border: none; width: 48px; height: 48px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: var(--text-secondary); }
         .vote-up { color: var(--success); }
         .vote-down { color: var(--danger); }
         .vote-btn:disabled { opacity: 0.3; }
-
+        
         #status { position: fixed; bottom: 5px; right: 5px; font-size: 10px; color: #666; pointer-events: none;}
-
-        @media (min-width: 769px) {
-            .board { padding: 20px; gap: 20px; overflow-x: auto; }
-            .column { flex: 1; min-width: 300px; max-width: 400px; }
-            .mobile-move-controls { display: none; }
-        }
-
-        @media (max-width: 768px) {
-            header { grid-template-columns: 1fr; gap: 8px; padding: 8px; text-align: center; }
-            .timer-section, .user-panel { justify-content: center; }
-            .board { padding: 10px; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; }
-            .column { flex: 0 0 88vw; scroll-snap-align: center; }
-        }
+        
+        @media (min-width: 769px) { .board { padding: 20px; gap: 20px; overflow-x: auto; } .column { flex: 1; min-width: 300px; max-width: 400px; } .mobile-move-controls { display: none; } }
+        @media (max-width: 768px) { header { grid-template-columns: 1fr; gap: 8px; padding: 8px; text-align: center; } .timer-section, .user-panel { justify-content: center; } .board { padding: 10px; gap: 10px; overflow-x: auto; scroll-snap-type: x mandatory; } .column { flex: 0 0 88vw; scroll-snap-align: center; } }
     </style>
 </head>
 <body>
-
     <header>
-        <div class="brand">
-            <h1>☕ LEAN COFFEE</h1>
-        </div>
-        
+        <div class="brand"><h1>☕ LEAN COFFEE</h1></div>
         <div class="timer-section">
             <div id="timer-display" class="timer-display">00:00</div>
             <div class="timer-controls">
@@ -200,16 +79,9 @@
                 <button class="btn-small" onclick="stopTimer()">Stop</button>
             </div>
         </div>
-
         <div class="user-panel">
-            <div class="stat-pill">
-                <span id="my-symbol-box"></span>
-                <span id="my-color-box" style="display:block; width:12px; height:12px; border-radius:50%;"></span> 
-            </div>
-            <div class="stat-pill">
-                <span>Röster:</span>
-                <span id="votes-left" style="font-weight:700; color:var(--primary);">3</span>
-            </div>
+            <div class="stat-pill"><span id="my-symbol-box"></span><span id="my-color-box" style="display:block; width:12px; height:12px; border-radius:50%;"></span></div>
+            <div class="stat-pill"><span>Röster:</span><span id="votes-left" style="font-weight:700; color:var(--primary);">3</span></div>
         </div>
     </header>
 
@@ -221,20 +93,10 @@
     </div>
 
     <div class="board">
-        <div class="column" id="col-proposal">
-            <div class="column-header"><h2>Förslag</h2><span>💡</span></div>
-            <div class="task-list" id="proposal"></div>
-        </div>
-        <div class="column" id="col-discuss">
-            <div class="column-header"><h2>Diskutera</h2><span>🗣️</span></div>
-            <div class="task-list" id="discuss"></div>
-        </div>
-        <div class="column" id="col-done">
-            <div class="column-header"><h2>Klart</h2><span>✅</span></div>
-            <div class="task-list" id="done"></div>
-        </div>
+        <div class="column" id="col-proposal"><div class="column-header"><h2>Förslag</h2><span>💡</span></div><div class="task-list" id="proposal"></div></div>
+        <div class="column" id="col-discuss"><div class="column-header"><h2>Diskutera</h2><span>🗣️</span></div><div class="task-list" id="discuss"></div></div>
+        <div class="column" id="col-done"><div class="column-header"><h2>Klart</h2><span>✅</span></div><div class="task-list" id="done"></div></div>
     </div>
-
     <div id="status">Connecting...</div>
 
     <script src="https://cdn.jsdelivr.net/npm/mobile-drag-drop@2.3.0-rc.2/index.min.js"></script>
@@ -258,10 +120,7 @@
         // --------------------------------------------------------------
 
         if (typeof MobileDragDrop !== 'undefined') {
-            MobileDragDrop.polyfill({
-                dragImageTranslateOverride: MobileDragDrop.scrollBehaviourDragImageTranslateOverride,
-                holdToDrag: 200 // Tryck i 200ms för att börja dra
-            });
+            MobileDragDrop.polyfill({ dragImageTranslateOverride: MobileDragDrop.scrollBehaviourDragImageTranslateOverride, holdToDrag: 200 });
         }
 
         const app = initializeApp(firebaseConfig);
@@ -288,7 +147,6 @@
         let timerInterval = null;
         let timerTarget = 0;
         const timerRef = ref(db, 'kanban/timer');
-
         onValue(timerRef, (snapshot) => {
             const data = snapshot.val();
             if (data && data.targetTime) {
@@ -302,20 +160,13 @@
             }
         });
 
-        window.startTimer = function() {
-            const val = document.getElementById('timer-input').value;
-            if (!val) return;
-            const targetTime = Date.now() + (parseInt(val) * 60 * 1000);
-            set(timerRef, { targetTime: targetTime });
-        };
+        window.startTimer = function() { const val = document.getElementById('timer-input').value; if (!val) return; set(timerRef, { targetTime: Date.now() + (parseInt(val) * 60 * 1000) }); };
         window.stopTimer = function() { set(timerRef, null); };
         function stopLocalTimer() { if (timerInterval) { clearInterval(timerInterval); timerInterval = null; } }
         function updateTimerUI() {
             const diff = timerTarget - Date.now();
             const display = document.getElementById('timer-display');
-            if (diff <= 0) {
-                display.innerText = "00:00"; display.classList.add('finished'); return;
-            }
+            if (diff <= 0) { display.innerText = "00:00"; display.classList.add('finished'); return; }
             display.classList.remove('finished');
             const m = Math.floor((diff % 3600000) / 60000);
             const s = Math.floor((diff % 60000) / 1000);
@@ -325,6 +176,21 @@
         const cardsRef = ref(db, 'kanban/cards');
         onValue(cardsRef, (s) => {
             const d = s.val(); cards = d ? d : [];
+            
+            // --- HÄR ÄR FIXEN ---
+            // Kollar om det finns några negativa röster och nollställer dem automatiskt.
+            let dirty = false;
+            cards.forEach(c => {
+                if (c.votes < 0) {
+                    c.votes = 0;
+                    dirty = true;
+                }
+            });
+            if (dirty) {
+                save(); // Spara den rättade datan direkt
+            }
+            // --------------------
+
             cards.sort((a, b) => b.votes - a.votes);
             renderBoard();
         });
@@ -335,53 +201,39 @@
             const input = document.getElementById('new-card-text');
             const text = input.value.trim();
             if (!text) return;
-            cards.push({ 
-                id: Date.now(), text: text, column: 'proposal', 
-                color: userColor, symbol: userSymbol, votes: 0 
-            });
+            cards.push({ id: Date.now(), text: text, column: 'proposal', color: userColor, symbol: userSymbol, votes: 0 });
             input.value = '';
             save();
         }
         document.getElementById('add-btn').onclick = window.createCard;
 
-        window.editCard = function(id) {
-            const c = cards.find(x => x.id === id);
-            const txt = prompt("Ändra text:", c.text);
-            if (txt && txt.trim()) { c.text = txt.trim(); save(); }
-        }
-
+        window.editCard = function(id) { const c = cards.find(x => x.id === id); const txt = prompt("Ändra text:", c.text); if (txt && txt.trim()) { c.text = txt.trim(); save(); } }
         window.deleteCard = function(id) {
             if(confirm("Ta bort?")) {
                 cards = cards.filter(x => x.id !== id);
-                while(myVotedCards.includes(id)) {
-                    myVotedCards.splice(myVotedCards.indexOf(id), 1);
-                }
+                while(myVotedCards.includes(id)) { myVotedCards.splice(myVotedCards.indexOf(id), 1); }
                 localStorage.setItem('myVotedCards', JSON.stringify(myVotedCards));
                 save();
             }
         }
-
         window.moveCard = function(id, direction) {
             const c = cards.find(x => x.id === id);
             if (!c) return;
             const currentIndex = COLUMNS.indexOf(c.column);
             let newIndex = currentIndex + direction;
-            if (newIndex >= 0 && newIndex < COLUMNS.length) {
-                c.column = COLUMNS[newIndex];
-                save();
-            }
+            if (newIndex >= 0 && newIndex < COLUMNS.length) { c.column = COLUMNS[newIndex]; save(); }
         }
 
         window.vote = function(id, delta) {
             const c = cards.find(x => x.id === id);
             if (!c) return;
-            
             if (delta > 0) { 
                 if (myVotedCards.length >= MAX_VOTES) { alert("Slut på röster"); return; }
                 c.votes++;
                 myVotedCards.push(id);
             } else { 
                 if (!myVotedCards.includes(id)) return;
+                // Säkerhetsspärr: Gå aldrig under 0
                 if (c.votes > 0) c.votes--;
                 myVotedCards.splice(myVotedCards.indexOf(id), 1);
             }
@@ -389,42 +241,25 @@
             save();
         }
 
-        // --- DRAG AND DROP START ---
         window.drag = function(ev) {
-            // MAGIC FIX FÖR MOBIL RÖSTNING:
-            // Om man försöker dra genom att hålla på en knapp -> AVBRYT DRAGET.
-            // Detta gör att klicket får gå igenom istället.
-            if (ev.target.tagName === 'BUTTON' || ev.target.closest('button')) {
-                ev.preventDefault();
-                return;
-            }
-
+            if (ev.target.tagName === 'BUTTON' || ev.target.closest('button')) { ev.preventDefault(); return; }
             ev.dataTransfer.setData("text/plain", ev.target.id);
             ev.dataTransfer.effectAllowed = 'move'; 
         }
-
-        window.allowDrop = function(ev) { 
-            ev.preventDefault(); 
-            ev.currentTarget.classList.add('drag-over');
-        }
+        window.allowDrop = function(ev) { ev.preventDefault(); ev.currentTarget.classList.add('drag-over'); }
         window.leaveDrop = function(ev) { ev.currentTarget.classList.remove('drag-over'); }
-
         window.drop = function(ev) {
             ev.preventDefault();
             ev.currentTarget.classList.remove('drag-over');
             const cardId = parseInt(ev.dataTransfer.getData("text/plain"));
             const targetCol = ev.currentTarget.id;
             const c = cards.find(x => x.id === cardId);
-            if(c && c.column !== targetCol) { 
-                c.column = targetCol; 
-                save(); 
-            }
+            if(c && c.column !== targetCol) { c.column = targetCol; save(); }
         }
 
         function renderBoard() {
             document.getElementById('votes-left').innerText = MAX_VOTES - myVotedCards.length;
             COLUMNS.forEach(col => document.getElementById(col).innerHTML = '');
-            
             const iEdit = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
             const iTrash = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
 
@@ -433,48 +268,18 @@
                 const colIndex = COLUMNS.indexOf(c.column);
                 const canMoveLeft = colIndex > 0;
                 const canMoveRight = colIndex < COLUMNS.length - 1;
-
                 const el = document.createElement('div');
-                el.className = 'card';
-                el.id = c.id;
-                el.draggable = true; 
-                el.style.borderLeftColor = c.color;
+                el.className = 'card'; el.id = c.id; el.draggable = true; el.style.borderLeftColor = c.color;
                 el.addEventListener('dragstart', window.drag);
                 
                 el.innerHTML = `
-                    <div class="card-top">
-                        <div class="card-text">${c.text}</div>
-                        <div style="display:flex; gap:5px;">
-                            <button class="icon-btn" onclick="editCard(${c.id})">${iEdit}</button>
-                            <button class="icon-btn delete-btn" onclick="deleteCard(${c.id})">${iTrash}</button>
-                        </div>
-                    </div>
-                    
-                    <div class="mobile-move-controls">
-                        <button class="move-btn" onclick="moveCard(${c.id}, -1)" ${!canMoveLeft?'disabled':''}>⬅️</button>
-                        <button class="move-btn" onclick="moveCard(${c.id}, 1)" ${!canMoveRight?'disabled':''}>➡️</button>
-                    </div>
-
-                    <div class="card-bottom">
-                        <div class="card-meta">
-                            <span class="creator-symbol">${c.symbol||'👤'}</span>
-                            ${myVotes>0?`<span style="color:var(--success); font-size:0.8em;">(Du:${myVotes})</span>`:''}
-                        </div>
-                        <div class="vote-pill">
-                            <button class="vote-btn vote-down" onclick="window.vote(${c.id}, -1)" ${myVotes===0?'disabled':''}>👎</button>
-                            <span style="font-weight:bold; font-size:1.2rem; min-width:20px; text-align:center;">${c.votes}</span>
-                            <button class="vote-btn vote-up" onclick="window.vote(${c.id}, 1)" ${(MAX_VOTES-myVotedCards.length)<=0?'disabled':''}>👍</button>
-                        </div>
-                    </div>
-                `;
+                    <div class="card-top"><div class="card-text">${c.text}</div><div style="display:flex; gap:5px;"><button class="icon-btn" onclick="editCard(${c.id})" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">${iEdit}</button><button class="icon-btn delete-btn" onclick="deleteCard(${c.id})" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">${iTrash}</button></div></div>
+                    <div class="mobile-move-controls"><button class="move-btn" onclick="moveCard(${c.id}, -1)" ${!canMoveLeft?'disabled':''} onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">⬅️</button><button class="move-btn" onclick="moveCard(${c.id}, 1)" ${!canMoveRight?'disabled':''} onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">➡️</button></div>
+                    <div class="card-bottom"><div class="card-meta"><span class="creator-symbol">${c.symbol||'👤'}</span>${myVotes>0?`<span style="color:var(--success); font-size:0.8em;">(Du:${myVotes})</span>`:''}</div>
+                    <div class="vote-pill"><button class="vote-btn vote-down" onclick="window.vote(${c.id}, -1)" ${myVotes===0?'disabled':''} onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">👎</button><span style="font-weight:bold; font-size:1.2rem; min-width:20px; text-align:center;">${c.votes}</span><button class="vote-btn vote-up" onclick="window.vote(${c.id}, 1)" ${(MAX_VOTES-myVotedCards.length)<=0?'disabled':''} onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">👍</button></div></div>`;
                 document.getElementById(c.column).appendChild(el);
             });
-
-            document.querySelectorAll('.task-list').forEach(list => {
-                list.ondrop = window.drop;
-                list.ondragover = window.allowDrop;
-                list.ondragleave = window.leaveDrop;
-            });
+            document.querySelectorAll('.task-list').forEach(list => { list.ondrop = window.drop; list.ondragover = window.allowDrop; list.ondragleave = window.leaveDrop; });
         }
     </script>
 </body>
