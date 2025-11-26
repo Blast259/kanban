@@ -45,7 +45,7 @@
             background-color: var(--bg-card); 
             border-radius: 8px; 
             padding: 12px; 
-            border-left: 6px solid transparent; /* Lite tjockare kant för färgen */
+            border-left: 6px solid transparent;
             position: relative; 
             box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
             touch-action: pan-y; 
@@ -68,7 +68,15 @@
         .creator-symbol { font-size: 1.2rem; margin-right: 6px; line-height: 1; }
         
         .vote-pill { display: flex; align-items: center; background-color: rgba(0,0,0,0.3); border-radius: 20px; padding: 2px; position: relative; z-index: 50; }
-        .vote-btn { background: none; border: none; width: 48px; height: 48px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: var(--text-secondary); }
+        
+        /* Röstknappar styling */
+        .vote-btn { 
+            background: none; border: none; 
+            width: 48px; height: 48px; 
+            border-radius: 50%; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center; 
+            color: var(--text-secondary); 
+        }
         .vote-up { color: var(--success); }
         .vote-down { color: var(--danger); }
         .vote-btn:disabled { opacity: 0.3; }
@@ -127,6 +135,7 @@
 		  storageBucket: "team-kanban.firebasestorage.app",
 		  messagingSenderId: "457664936790",
 		  appId: "1:457664936790:web:a77f6fe962b365fb1034f7"
+            appId: "PASTA_IN_DIN_CONFIG_HÄR"
         };
         // --------------------------------------------------------------
 
@@ -141,37 +150,27 @@
         const MAX_VOTES = 3;
         const COLUMNS = ['proposal', 'discuss', 'done'];
         
-        // --- ANVÄNDARIDENTITET (STABIL LOGIK) ---
-        // 1. Symboler
+        // --- ANVÄNDARIDENTITET ---
         const SYMBOLS = ['🦊','🐼','🐸','🦄','🐝','🦉','🚀','🤖','🦖','🍄','🐙','🐯','🦁','🐱','🐵','🐘','🐧','🐦'];
-        
-        // 2. Funktion för att generera snygga färger (HSL)
-        // Detta ger klara, ljusa färger som syns bra mot mörk bakgrund
         function generateNiceColor() {
             const hue = Math.floor(Math.random() * 360);
             return `hsl(${hue}, 70%, 60%)`; 
         }
-
-        // 3. Hämta från localStorage
         let userColor = localStorage.getItem('userColor');
         let userSymbol = localStorage.getItem('userSymbol');
 
-        // 4. Om det SAKNAS, skapa nytt och SPARA (Detta händer bara första gången)
         if (!userColor || !userSymbol) {
              userColor = generateNiceColor();
              userSymbol = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
-             
              localStorage.setItem('userColor', userColor);
              localStorage.setItem('userSymbol', userSymbol);
         }
 
-        // 5. Visa användarens identitet i headern
         document.getElementById('my-color-box').style.backgroundColor = userColor;
         document.getElementById('my-color-box').style.boxShadow = `0 0 8px ${userColor}`;
         document.getElementById('my-symbol-box').innerText = userSymbol;
         
         let myVotedCards = JSON.parse(localStorage.getItem('myVotedCards')) || [];
-        // ----------------------------------------
 
         let timerInterval = null;
         let timerTarget = 0;
@@ -205,8 +204,6 @@
         const cardsRef = ref(db, 'kanban/cards');
         onValue(cardsRef, (s) => {
             const d = s.val(); cards = d ? d : [];
-            
-            // Auto-fix av minusröster
             let dirty = false;
             cards.forEach(c => { if (c.votes < 0) { c.votes = 0; dirty = true; } });
             if (dirty) save(); 
@@ -221,15 +218,9 @@
             const input = document.getElementById('new-card-text');
             const text = input.value.trim();
             if (!text) return;
-            
-            // Här sparas användarens nuvarande färg och symbol permanent på kortet
             cards.push({ 
-                id: Date.now(), 
-                text: text, 
-                column: 'proposal', 
-                color: userColor, 
-                symbol: userSymbol, 
-                votes: 0 
+                id: Date.now(), text: text, column: 'proposal', 
+                color: userColor, symbol: userSymbol, votes: 0 
             });
             input.value = '';
             save();
@@ -288,8 +279,14 @@
         function renderBoard() {
             document.getElementById('votes-left').innerText = MAX_VOTES - myVotedCards.length;
             COLUMNS.forEach(col => document.getElementById(col).innerHTML = '');
+            
+            // --- IKONER (SVG) ---
             const iEdit = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>`;
             const iTrash = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>`;
+            
+            // NYA RÖST-IKONER (PILAR)
+            const iArrowUp = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"></line><polyline points="5 12 12 5 19 12"></polyline></svg>`;
+            const iArrowDown = `<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><polyline points="19 12 12 19 5 12"></polyline></svg>`;
 
             cards.forEach(c => {
                 const myVotes = myVotedCards.filter(x => x === c.id).length;
@@ -298,17 +295,14 @@
                 const canMoveRight = colIndex < COLUMNS.length - 1;
                 const el = document.createElement('div');
                 el.className = 'card'; el.id = c.id; el.draggable = true; 
-                
-                // Använd kortets sparade färg, inte nuvarande användares
                 el.style.borderLeftColor = c.color; 
-                
                 el.addEventListener('dragstart', window.drag);
                 
                 el.innerHTML = `
                     <div class="card-top"><div class="card-text">${c.text}</div><div style="display:flex; gap:5px;"><button class="icon-btn" onclick="editCard(${c.id})" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">${iEdit}</button><button class="icon-btn delete-btn" onclick="deleteCard(${c.id})" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">${iTrash}</button></div></div>
                     <div class="mobile-move-controls"><button class="move-btn" onclick="moveCard(${c.id}, -1)" ${!canMoveLeft?'disabled':''} onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">⬅️</button><button class="move-btn" onclick="moveCard(${c.id}, 1)" ${!canMoveRight?'disabled':''} onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">➡️</button></div>
                     <div class="card-bottom"><div class="card-meta"><span class="creator-symbol">${c.symbol||'👤'}</span>${myVotes>0?`<span style="color:var(--success); font-size:0.8em;">(Du:${myVotes})</span>`:''}</div>
-                    <div class="vote-pill"><button class="vote-btn vote-down" onclick="window.vote(${c.id}, -1)" ${myVotes===0?'disabled':''} onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">👎</button><span style="font-weight:bold; font-size:1.2rem; min-width:20px; text-align:center;">${c.votes}</span><button class="vote-btn vote-up" onclick="window.vote(${c.id}, 1)" ${(MAX_VOTES-myVotedCards.length)<=0?'disabled':''} onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">👍</button></div></div>`;
+                    <div class="vote-pill"><button class="vote-btn vote-down" onclick="window.vote(${c.id}, -1)" ${myVotes===0?'disabled':''} onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">${iArrowDown}</button><span style="font-weight:bold; font-size:1.2rem; min-width:20px; text-align:center;">${c.votes}</span><button class="vote-btn vote-up" onclick="window.vote(${c.id}, 1)" ${(MAX_VOTES-myVotedCards.length)<=0?'disabled':''} onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">${iArrowUp}</button></div></div>`;
                 document.getElementById(c.column).appendChild(el);
             });
             document.querySelectorAll('.task-list').forEach(list => { list.ondrop = window.drop; list.ondragover = window.allowDrop; list.ondragleave = window.leaveDrop; });
@@ -316,4 +310,3 @@
     </script>
 </body>
 </html>
-
