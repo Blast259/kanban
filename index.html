@@ -40,7 +40,18 @@
         .task-list { flex: 1; padding: 10px; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
         .task-list.drag-over { background-color: rgba(56, 189, 248, 0.1); border: 2px dashed var(--primary); }
         
-        .card { background-color: var(--bg-card); border-radius: 8px; padding: 12px; border-left: 4px solid transparent; position: relative; box-shadow: 0 2px 4px rgba(0,0,0,0.2); touch-action: pan-y; cursor: grab; user-select: none; }
+        /* CARD STYLING */
+        .card { 
+            background-color: var(--bg-card); 
+            border-radius: 8px; 
+            padding: 12px; 
+            border-left: 6px solid transparent; /* Lite tjockare kant för färgen */
+            position: relative; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.2); 
+            touch-action: pan-y; 
+            cursor: grab; 
+            user-select: none; 
+        }
         .card.mobile-drag-drop-active { opacity: 0.5; }
         .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
         .card-text { flex: 1; word-wrap: break-word; white-space: pre-wrap; line-height: 1.4; user-select: text; }
@@ -54,7 +65,7 @@
         
         .card-bottom { display: flex; justify-content: space-between; align-items: center; margin-top: 10px; padding-top: 5px; border-top: 1px solid rgba(255,255,255,0.05); }
         .card-meta { font-size: 0.75rem; color: var(--text-muted); display: flex; align-items: center; }
-        .creator-symbol { font-size: 1.1rem; margin-right: 5px; }
+        .creator-symbol { font-size: 1.2rem; margin-right: 6px; line-height: 1; }
         
         .vote-pill { display: flex; align-items: center; background-color: rgba(0,0,0,0.3); border-radius: 20px; padding: 2px; position: relative; z-index: 50; }
         .vote-btn { background: none; border: none; width: 48px; height: 48px; border-radius: 50%; cursor: pointer; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; color: var(--text-secondary); }
@@ -109,13 +120,13 @@
         // KONFIGURATION - Klistra in dina uppgifter här!
         // --------------------------------------------------------------
         const firebaseConfig = {
-		  apiKey: "AIzaSyCHrUufAISfVGwGICTDcVaWGt0vzLVRFpk",
-		  authDomain: "team-kanban.firebaseapp.com",
-		  databaseURL: "https://team-kanban-default-rtdb.europe-west1.firebasedatabase.app",
-		  projectId: "team-kanban",
-		  storageBucket: "team-kanban.firebasestorage.app",
-		  messagingSenderId: "457664936790",
-		  appId: "1:457664936790:web:a77f6fe962b365fb1034f7"
+            apiKey: "PASTA_IN_DIN_CONFIG_HÄR",
+            authDomain: "PASTA_IN_DIN_CONFIG_HÄR",
+            databaseURL: "PASTA_IN_DIN_CONFIG_HÄR",
+            projectId: "PASTA_IN_DIN_CONFIG_HÄR",
+            storageBucket: "PASTA_IN_DIN_CONFIG_HÄR",
+            messagingSenderId: "PASTA_IN_DIN_CONFIG_HÄR",
+            appId: "PASTA_IN_DIN_CONFIG_HÄR"
         };
         // --------------------------------------------------------------
 
@@ -130,19 +141,37 @@
         const MAX_VOTES = 3;
         const COLUMNS = ['proposal', 'discuss', 'done'];
         
-        const SYMBOLS = ['🦊','🐼','🐸','🦄','🐝','🦉','🚀','🤖','🦖','🍄'];
+        // --- ANVÄNDARIDENTITET (STABIL LOGIK) ---
+        // 1. Symboler
+        const SYMBOLS = ['🦊','🐼','🐸','🦄','🐝','🦉','🚀','🤖','🦖','🍄','🐙','🐯','🦁','🐱','🐵','🐘','🐧','🐦'];
+        
+        // 2. Funktion för att generera snygga färger (HSL)
+        // Detta ger klara, ljusa färger som syns bra mot mörk bakgrund
+        function generateNiceColor() {
+            const hue = Math.floor(Math.random() * 360);
+            return `hsl(${hue}, 70%, 60%)`; 
+        }
+
+        // 3. Hämta från localStorage
         let userColor = localStorage.getItem('userColor');
         let userSymbol = localStorage.getItem('userSymbol');
 
+        // 4. Om det SAKNAS, skapa nytt och SPARA (Detta händer bara första gången)
         if (!userColor || !userSymbol) {
-             userColor = '#' + Math.floor(Math.random()*16777215).toString(16);
+             userColor = generateNiceColor();
              userSymbol = SYMBOLS[Math.floor(Math.random() * SYMBOLS.length)];
+             
              localStorage.setItem('userColor', userColor);
              localStorage.setItem('userSymbol', userSymbol);
         }
+
+        // 5. Visa användarens identitet i headern
         document.getElementById('my-color-box').style.backgroundColor = userColor;
+        document.getElementById('my-color-box').style.boxShadow = `0 0 8px ${userColor}`;
         document.getElementById('my-symbol-box').innerText = userSymbol;
+        
         let myVotedCards = JSON.parse(localStorage.getItem('myVotedCards')) || [];
+        // ----------------------------------------
 
         let timerInterval = null;
         let timerTarget = 0;
@@ -177,19 +206,10 @@
         onValue(cardsRef, (s) => {
             const d = s.val(); cards = d ? d : [];
             
-            // --- HÄR ÄR FIXEN ---
-            // Kollar om det finns några negativa röster och nollställer dem automatiskt.
+            // Auto-fix av minusröster
             let dirty = false;
-            cards.forEach(c => {
-                if (c.votes < 0) {
-                    c.votes = 0;
-                    dirty = true;
-                }
-            });
-            if (dirty) {
-                save(); // Spara den rättade datan direkt
-            }
-            // --------------------
+            cards.forEach(c => { if (c.votes < 0) { c.votes = 0; dirty = true; } });
+            if (dirty) save(); 
 
             cards.sort((a, b) => b.votes - a.votes);
             renderBoard();
@@ -201,7 +221,16 @@
             const input = document.getElementById('new-card-text');
             const text = input.value.trim();
             if (!text) return;
-            cards.push({ id: Date.now(), text: text, column: 'proposal', color: userColor, symbol: userSymbol, votes: 0 });
+            
+            // Här sparas användarens nuvarande färg och symbol permanent på kortet
+            cards.push({ 
+                id: Date.now(), 
+                text: text, 
+                column: 'proposal', 
+                color: userColor, 
+                symbol: userSymbol, 
+                votes: 0 
+            });
             input.value = '';
             save();
         }
@@ -233,7 +262,6 @@
                 myVotedCards.push(id);
             } else { 
                 if (!myVotedCards.includes(id)) return;
-                // Säkerhetsspärr: Gå aldrig under 0
                 if (c.votes > 0) c.votes--;
                 myVotedCards.splice(myVotedCards.indexOf(id), 1);
             }
@@ -269,7 +297,11 @@
                 const canMoveLeft = colIndex > 0;
                 const canMoveRight = colIndex < COLUMNS.length - 1;
                 const el = document.createElement('div');
-                el.className = 'card'; el.id = c.id; el.draggable = true; el.style.borderLeftColor = c.color;
+                el.className = 'card'; el.id = c.id; el.draggable = true; 
+                
+                // Använd kortets sparade färg, inte nuvarande användares
+                el.style.borderLeftColor = c.color; 
+                
                 el.addEventListener('dragstart', window.drag);
                 
                 el.innerHTML = `
