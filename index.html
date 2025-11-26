@@ -35,7 +35,6 @@
             overflow: hidden;
         }
 
-        /* --- Header --- */
         header {
             background-color: var(--bg-surface);
             border-bottom: 1px solid var(--border);
@@ -49,7 +48,6 @@
 
         .brand h1 { font-size: 1rem; font-weight: 700; margin: 0; white-space: nowrap; }
 
-        /* Timer */
         .timer-section { display: flex; justify-content: center; align-items: center; gap: 8px; }
         .timer-display {
             font-family: 'JetBrains Mono', monospace; font-size: 1.2rem; font-weight: 700;
@@ -67,14 +65,12 @@
             border-radius: 4px; padding: 4px 8px; cursor: pointer; font-size: 0.8rem;
         }
 
-        /* User Panel */
         .user-panel { display: flex; gap: 5px; justify-content: flex-end; font-size: 0.75rem; }
         .stat-pill {
             background: rgba(255,255,255,0.05); padding: 4px 8px; border-radius: 20px;
             display: flex; align-items: center; gap: 5px; border: 1px solid rgba(255,255,255,0.1);
         }
 
-        /* --- Input Area --- */
         .controls-area { padding: 10px; display: flex; justify-content: center; flex-shrink: 0; }
         .input-group {
             display: flex; width: 100%; max-width: 600px; background: var(--bg-surface);
@@ -89,10 +85,7 @@
             width: 50px; font-weight: 600; font-size: 1.5rem; cursor: pointer;
         }
 
-        /* --- Board Container --- */
-        .board {
-            flex: 1; display: flex; 
-        }
+        .board { flex: 1; display: flex; }
 
         .column {
             background-color: var(--bg-surface); border-radius: 12px;
@@ -122,24 +115,24 @@
             box-shadow: 0 2px 4px rgba(0,0,0,0.2);
             touch-action: pan-y;
             cursor: grab;
-            /* VIKTIGT: Gör så att kortet inte "svarar" på alla klick direkt, vi styr det på knapparna */
-            user-select: none; 
+            user-select: none; /* Förhindra textmarkering när man drar */
         }
         
-        /* Denna klass läggs till av drag-drop scriptet när man drar */
+        /* Visuell feedback när man drar */
         .card.mobile-drag-drop-active { opacity: 0.5; }
 
         .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 10px; }
+        
+        /* Tillåt textmarkering i texten, men inte dra */
         .card-text { flex: 1; word-wrap: break-word; white-space: pre-wrap; line-height: 1.4; user-select: text; }
         
+        /* Fixade knappar: Inga konstiga event-stoppers, hanteras i JS istället */
         .icon-btn {
             background: rgba(255,255,255,0.05); border: none; color: var(--text-muted);
-            border-radius: 4px; padding: 10px; /* Större träffyta */
-            cursor: pointer; display: flex;
+            border-radius: 4px; padding: 10px; cursor: pointer; display: flex;
         }
         .delete-btn { color: var(--danger); }
 
-        /* Mobil-specifik flytt-kontroll */
         .mobile-move-controls {
             display: flex; justify-content: space-between; margin-top: 10px;
             padding-top: 8px; border-top: 1px solid rgba(255,255,255,0.05);
@@ -161,12 +154,12 @@
             display: flex; align-items: center; background-color: rgba(0,0,0,0.3);
             border-radius: 20px; padding: 2px;
             position: relative; 
-            z-index: 20; /* Ligger över drag-ytan */
+            z-index: 50; /* Mycket hög z-index för att ligga över dragytan */
         }
         
         .vote-btn {
             background: none; border: none;
-            width: 48px; height: 48px; /* Extra stor touch-yta */
+            width: 48px; height: 48px; /* Stor touch-yta */
             border-radius: 50%; cursor: pointer; 
             display: flex; align-items: center; justify-content: center;
             font-size: 1.3rem; color: var(--text-secondary);
@@ -178,7 +171,6 @@
 
         #status { position: fixed; bottom: 5px; right: 5px; font-size: 10px; color: #666; pointer-events: none;}
 
-        /* --- MEDIA QUERIES --- */
         @media (min-width: 769px) {
             .board { padding: 20px; gap: 20px; overflow-x: auto; }
             .column { flex: 1; min-width: 300px; max-width: 400px; }
@@ -216,7 +208,7 @@
             </div>
             <div class="stat-pill">
                 <span>Röster:</span>
-                <span id="votes-left" style="font-weight:700; color:var(--primary);">5</span>
+                <span id="votes-left" style="font-weight:700; color:var(--primary);">3</span>
             </div>
         </div>
     </header>
@@ -265,11 +257,10 @@
         };
         // --------------------------------------------------------------
 
-        // Initiera Mobil Polyfill med inställningar som inte blockerar scroll
         if (typeof MobileDragDrop !== 'undefined') {
             MobileDragDrop.polyfill({
                 dragImageTranslateOverride: MobileDragDrop.scrollBehaviourDragImageTranslateOverride,
-                holdToDrag: 200 // Vänta 200ms innan drag börjar (förhindrar oavsiktlig drag)
+                holdToDrag: 200 // Tryck i 200ms för att börja dra
             });
         }
 
@@ -277,10 +268,9 @@
         const db = getDatabase(app);
         
         let cards = [];
-        const MAX_VOTES = 5;
+        const MAX_VOTES = 3;
         const COLUMNS = ['proposal', 'discuss', 'done'];
         
-        // --- ANVÄNDARID ---
         const SYMBOLS = ['🦊','🐼','🐸','🦄','🐝','🦉','🚀','🤖','🦖','🍄'];
         let userColor = localStorage.getItem('userColor');
         let userSymbol = localStorage.getItem('userSymbol');
@@ -295,7 +285,6 @@
         document.getElementById('my-symbol-box').innerText = userSymbol;
         let myVotedCards = JSON.parse(localStorage.getItem('myVotedCards')) || [];
 
-        // --- TIMER ---
         let timerInterval = null;
         let timerTarget = 0;
         const timerRef = ref(db, 'kanban/timer');
@@ -333,7 +322,6 @@
             display.innerText = (m<10?"0"+m:m) + ":" + (s<10?"0"+s:s);
         }
 
-        // --- CARDS ---
         const cardsRef = ref(db, 'kanban/cards');
         onValue(cardsRef, (s) => {
             const d = s.val(); cards = d ? d : [];
@@ -401,11 +389,20 @@
             save();
         }
 
-        // --- DRAG AND DROP ---
-        window.drag = function(ev) { 
+        // --- DRAG AND DROP START ---
+        window.drag = function(ev) {
+            // MAGIC FIX FÖR MOBIL RÖSTNING:
+            // Om man försöker dra genom att hålla på en knapp -> AVBRYT DRAGET.
+            // Detta gör att klicket får gå igenom istället.
+            if (ev.target.tagName === 'BUTTON' || ev.target.closest('button')) {
+                ev.preventDefault();
+                return;
+            }
+
             ev.dataTransfer.setData("text/plain", ev.target.id);
             ev.dataTransfer.effectAllowed = 'move'; 
         }
+
         window.allowDrop = function(ev) { 
             ev.preventDefault(); 
             ev.currentTarget.classList.add('drag-over');
@@ -444,21 +441,18 @@
                 el.style.borderLeftColor = c.color;
                 el.addEventListener('dragstart', window.drag);
                 
-                // --- FIX: STOPPA DRAG NÄR MAN KLICKAR PÅ KNAPPAR ---
-                // "ontouchstart='event.stopPropagation()'" förhindrar att kortet börjar dras när man trycker på knappen
-                
                 el.innerHTML = `
                     <div class="card-top">
                         <div class="card-text">${c.text}</div>
                         <div style="display:flex; gap:5px;">
-                            <button class="icon-btn" onclick="editCard(${c.id})" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">${iEdit}</button>
-                            <button class="icon-btn delete-btn" onclick="deleteCard(${c.id})" onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">${iTrash}</button>
+                            <button class="icon-btn" onclick="editCard(${c.id})">${iEdit}</button>
+                            <button class="icon-btn delete-btn" onclick="deleteCard(${c.id})">${iTrash}</button>
                         </div>
                     </div>
                     
                     <div class="mobile-move-controls">
-                        <button class="move-btn" onclick="moveCard(${c.id}, -1)" ${!canMoveLeft?'disabled':''} onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">⬅️</button>
-                        <button class="move-btn" onclick="moveCard(${c.id}, 1)" ${!canMoveRight?'disabled':''} onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">➡️</button>
+                        <button class="move-btn" onclick="moveCard(${c.id}, -1)" ${!canMoveLeft?'disabled':''}>⬅️</button>
+                        <button class="move-btn" onclick="moveCard(${c.id}, 1)" ${!canMoveRight?'disabled':''}>➡️</button>
                     </div>
 
                     <div class="card-bottom">
@@ -467,9 +461,9 @@
                             ${myVotes>0?`<span style="color:var(--success); font-size:0.8em;">(Du:${myVotes})</span>`:''}
                         </div>
                         <div class="vote-pill">
-                            <button class="vote-btn vote-down" onclick="window.vote(${c.id}, -1)" ${myVotes===0?'disabled':''} onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">👎</button>
+                            <button class="vote-btn vote-down" onclick="window.vote(${c.id}, -1)" ${myVotes===0?'disabled':''}>👎</button>
                             <span style="font-weight:bold; font-size:1.2rem; min-width:20px; text-align:center;">${c.votes}</span>
-                            <button class="vote-btn vote-up" onclick="window.vote(${c.id}, 1)" ${(MAX_VOTES-myVotedCards.length)<=0?'disabled':''} onmousedown="event.stopPropagation()" ontouchstart="event.stopPropagation()">👍</button>
+                            <button class="vote-btn vote-up" onclick="window.vote(${c.id}, 1)" ${(MAX_VOTES-myVotedCards.length)<=0?'disabled':''}>👍</button>
                         </div>
                     </div>
                 `;
